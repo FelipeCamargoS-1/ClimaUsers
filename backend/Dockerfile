@@ -1,0 +1,39 @@
+# --- Est�gio de Compila��o ---
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY prisma ./prisma/
+RUN npx prisma generate
+
+COPY tsconfig.json ./
+COPY src ./src
+COPY data ./data
+
+RUN npm run build
+
+# --- Est�gio de Produ��o ---
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY prisma ./prisma
+RUN npx prisma generate
+
+ENV NODE_ENV=production
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/data ./data
+COPY --from=builder /app/src ./src
+COPY tsconfig.json ./
+
+EXPOSE 3000
+
+# O Compose sobrescreve este comando no serviço único de inicialização do banco.
+CMD ["npm", "run", "start"]
