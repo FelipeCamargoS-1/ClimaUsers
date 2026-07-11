@@ -1,4 +1,4 @@
-﻿import axios from 'axios';
+import axios from 'axios';
 import { WeatherService } from '../../services/weather.service';
 import { weatherCache } from '../../config/cache';
 
@@ -7,7 +7,7 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 const weatherApiResponse = {
   data: {
-    location: { name: 'Curitiba', region: 'Paraná', lat: -25.429, lon: -49.2671 },
+    location: { name: 'Curitiba', region: 'Parana', lat: -25.429, lon: -49.2671 },
     current: {
       temp_c: 22.4,
       feelslike_c: 23.1,
@@ -43,7 +43,7 @@ const weatherApiResponse = {
 };
 
 const openWeatherLocationResponse = {
-  data: [{ name: 'Curitiba', local_names: { pt: 'Curitiba' }, state: 'Paraná', lat: -25.429, lon: -49.2671 }],
+  data: [{ name: 'Curitiba', local_names: { pt: 'Curitiba' }, state: 'Parana', lat: -25.429, lon: -49.2671 }],
 };
 
 const openWeatherCurrentResponse = {
@@ -81,15 +81,15 @@ describe('WeatherService Unit Tests', () => {
 
   afterAll(() => weatherCache.flushAll());
 
-  it('should fetch and map weather data from WeatherAPI', async () => {
-    const result = await weatherService.getWeather('Curitiba');
+  it('should fetch and map weather data from WeatherAPI using an exact city/state query', async () => {
+    const result = await weatherService.getWeather('Curitiba', 'PR');
 
     expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/forecast.json'), {
-      params: expect.objectContaining({ q: 'Curitiba', days: 3, alerts: 'yes', lang: 'pt' }),
+      params: expect.objectContaining({ q: 'curitiba, Parana, Brazil', days: 3, alerts: 'yes', lang: 'pt', aqi: 'no', key: 'test-weather-api-key' }),
     });
     expect(result).toMatchObject({
       cidade: 'Curitiba',
-      estado: 'Paraná',
+      estado: 'Parana',
       latitude: -25.429,
       longitude: -49.2671,
       temperatura: 22,
@@ -107,23 +107,23 @@ describe('WeatherService Unit Tests', () => {
   });
 
   it('should retrieve weather data from cache if it exists', async () => {
-    const firstResult = await weatherService.getWeather('Curitiba');
-    weatherCache.set('weather:curitiba', { ...firstResult, temperatura: 99 });
+    const firstResult = await weatherService.getWeather('Curitiba', 'PR');
+    weatherCache.set('weather:curitiba:parana', { ...firstResult, temperatura: 99 });
 
-    const secondResult = await weatherService.getWeather('Curitiba');
+    const secondResult = await weatherService.getWeather('Curitiba', 'PR');
 
     expect(secondResult.temperatura).toBe(99);
     expect(mockedAxios.get).toHaveBeenCalledTimes(1);
   });
 
-  it('should fallback to OpenWeather when WeatherAPI rejects the key', async () => {
+  it('should fallback to OpenWeather when WeatherAPI rejects the key and still match the exact location', async () => {
     mockedAxios.get
       .mockRejectedValueOnce({ response: { status: 401 }, message: 'Unauthorized' })
       .mockResolvedValueOnce(openWeatherLocationResponse)
       .mockResolvedValueOnce(openWeatherCurrentResponse)
       .mockResolvedValueOnce(openWeatherForecastResponse);
 
-    const result = await weatherService.getWeather('Curitiba');
+    const result = await weatherService.getWeather('Curitiba', 'PR');
 
     expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/forecast.json'), expect.any(Object));
     expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/geo/1.0/direct'), expect.any(Object));
@@ -131,7 +131,7 @@ describe('WeatherService Unit Tests', () => {
     expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/forecast'), expect.any(Object));
     expect(result).toMatchObject({
       cidade: 'Curitiba',
-      estado: 'Paraná',
+      estado: 'Parana',
       temperatura: 22,
       sensacaoTermica: 21,
       umidade: 69,
@@ -144,16 +144,24 @@ describe('WeatherService Unit Tests', () => {
     expect(result.previsaoCompleta.length).toBeGreaterThan(1);
   });
 
+  it('should reject mismatched state selections instead of returning the wrong city data', async () => {
+    mockedAxios.get
+      .mockResolvedValueOnce(weatherApiResponse)
+      .mockResolvedValueOnce(openWeatherLocationResponse);
+
+    await expect(weatherService.getWeather('Curitiba', 'SP')).rejects.toMatchObject({ statusCode: 404 });
+  });
+
   it('should return not found when no provider locates the city', async () => {
     mockedAxios.get
       .mockRejectedValueOnce({ response: { status: 401 }, message: 'Unauthorized' })
       .mockResolvedValueOnce({ data: [] });
 
-    await expect(weatherService.getWeather('Cidade Inexistente')).rejects.toMatchObject({ statusCode: 404 });
+    await expect(weatherService.getWeather('Cidade Inexistente', 'PR')).rejects.toMatchObject({ statusCode: 404 });
   });
 
   it('should validate empty city names before calling external APIs', async () => {
-    await expect(weatherService.getWeather('   ')).rejects.toMatchObject({ statusCode: 400 });
+    await expect(weatherService.getWeather('   ', 'PR')).rejects.toMatchObject({ statusCode: 400 });
     expect(mockedAxios.get).not.toHaveBeenCalled();
   });
 });

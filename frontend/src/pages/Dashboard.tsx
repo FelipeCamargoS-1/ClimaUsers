@@ -6,9 +6,9 @@ import { useWeatherQuery } from '../hooks/useWeather';
 
 export function Dashboard() {
   const { data: usersData, isLoading: usersLoading } = useUsersList({ page: 1, limit: 5, sortBy: 'createdAt', sortOrder: 'desc' });
-  const spWeather = useWeatherQuery('São Paulo');
-  const rjWeather = useWeatherQuery('Rio de Janeiro');
-  const dfWeather = useWeatherQuery('Brasília');
+  const spWeather = useWeatherQuery({ city: 'São Paulo', stateCode: 'SP', stateName: 'São Paulo' });
+  const rjWeather = useWeatherQuery({ city: 'Rio de Janeiro', stateCode: 'RJ', stateName: 'Rio de Janeiro' });
+  const dfWeather = useWeatherQuery({ city: 'Brasília', stateCode: 'DF', stateName: 'Distrito Federal' });
   const totalUsers = usersData?.pagination?.total ?? 0;
   const users = usersData?.data ?? [];
   const mainWeather = spWeather.data;

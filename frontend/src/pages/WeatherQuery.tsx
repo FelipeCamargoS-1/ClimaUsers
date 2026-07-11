@@ -17,8 +17,7 @@ export function WeatherQuery() {
   const states = useBrazilStates();
   const selectedState = states.data?.find((state) => state.sigla === stateCode);
   const cities = useBrazilCities(selectedState?.id);
-  const weatherLocation = city && stateCode ? `${city}, ${stateCode}` : '';
-  const weather = useWeatherQuery(weatherLocation);
+  const weather = useWeatherQuery({ city, stateCode, stateName: selectedState?.nome ?? '' });
 
   return (
     <div className="space-y-5 pb-6">

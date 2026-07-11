@@ -23,53 +23,111 @@ export interface WeatherData {
   alertas: string[];
 }
 
+type WeatherLookup = {
+  city: string;
+  stateCode?: string;
+  stateName?: string;
+};
+
+type OpenWeatherLocation = {
+  name?: string;
+  local_names?: Record<string, string>;
+  state?: string;
+  lat: number;
+  lon: number;
+};
+
+const BRAZIL_STATES: Record<string, string> = {
+  AC: 'Acre',
+  AL: 'Alagoas',
+  AP: 'Amapa',
+  AM: 'Amazonas',
+  BA: 'Bahia',
+  CE: 'Ceara',
+  DF: 'Distrito Federal',
+  ES: 'Espirito Santo',
+  GO: 'Goias',
+  MA: 'Maranhao',
+  MT: 'Mato Grosso',
+  MS: 'Mato Grosso do Sul',
+  MG: 'Minas Gerais',
+  PA: 'Para',
+  PB: 'Paraiba',
+  PR: 'Parana',
+  PE: 'Pernambuco',
+  PI: 'Piaui',
+  RJ: 'Rio de Janeiro',
+  RN: 'Rio Grande do Norte',
+  RS: 'Rio Grande do Sul',
+  RO: 'Rondonia',
+  RR: 'Roraima',
+  SC: 'Santa Catarina',
+  SP: 'Sao Paulo',
+  SE: 'Sergipe',
+  TO: 'Tocantins',
+};
+
 export class WeatherService {
   private readonly apiKey = env.WEATHER_API_KEY;
   private readonly weatherApiBaseUrl = 'http://api.weatherapi.com/v1';
   private readonly openWeatherGeoUrl = 'https://api.openweathermap.org/geo/1.0/direct';
   private readonly openWeatherBaseUrl = 'https://api.openweathermap.org/data/2.5';
 
-  async getWeather(city: string): Promise<WeatherData> {
-    const normalizedCity = city.trim();
+  async getWeather(city: string, stateCode?: string, stateName?: string): Promise<WeatherData> {
+    const normalizedCity = this.normalizeText(city);
+    const normalizedState = this.resolveStateName(stateCode, stateName);
+
     if (!normalizedCity) throw new AppError('Cidade é obrigatória', 400);
     if (!this.apiKey) throw new AppError('WEATHER_API_KEY não configurada no backend', 500);
 
-    const cacheKey = `weather:${normalizedCity.toLowerCase()}`;
+    const cacheKey = `weather:${normalizedCity}:${this.normalizeText(normalizedState ?? 'any')}`;
     const cachedData = weatherCache.get<WeatherData>(cacheKey);
     if (cachedData) return cachedData;
 
     try {
-      const weatherData = await this.fetchFromApi(normalizedCity);
+      const weatherData = await this.fetchFromApi({ city: normalizedCity, stateName: normalizedState });
       weatherCache.set(cacheKey, weatherData);
       return weatherData;
     } catch (error: any) {
-      logger.error(`Erro ao buscar clima para ${normalizedCity}: ${error.message}`);
+      logger.error(`Erro ao buscar clima para ${city}${normalizedState ? `/${normalizedState}` : ''}: ${error.message}`);
       if (error instanceof AppError) throw error;
       if (error.response?.status === 400 || error.response?.status === 404) {
-        throw new AppError(`Cidade "${normalizedCity}" não localizada no serviço de clima`, 404);
+        throw new AppError(`Localidade "${city}${normalizedState ? `, ${normalizedState}` : ''}" não localizada no serviço de clima`, 404);
       }
       throw new AppError('Não foi possível consultar a API de clima no momento', 502);
     }
   }
 
-  private async fetchFromApi(city: string): Promise<WeatherData> {
+  private async fetchFromApi(lookup: WeatherLookup): Promise<WeatherData> {
     try {
-      return await this.fetchFromWeatherApi(city);
+      return await this.fetchFromWeatherApi(lookup);
     } catch (error: any) {
+      if (error instanceof AppError && error.statusCode === 404) {
+        return this.fetchFromOpenWeather(lookup);
+      }
+
       if (error.response?.status === 401 || error.response?.status === 403) {
-        return this.fetchFromOpenWeather(city);
+        return this.fetchFromOpenWeather(lookup);
       }
 
       throw error;
     }
   }
 
-  private async fetchFromWeatherApi(city: string): Promise<WeatherData> {
+  private async fetchFromWeatherApi(lookup: WeatherLookup): Promise<WeatherData> {
     const response = await axios.get(`${this.weatherApiBaseUrl}/forecast.json`, {
-      params: { key: this.apiKey, q: city, days: 3, aqi: 'no', alerts: 'yes', lang: 'pt' },
+      params: {
+        key: this.apiKey,
+        q: this.buildQueryLocation(lookup),
+        days: 3,
+        aqi: 'no',
+        alerts: 'yes',
+        lang: 'pt',
+      },
     });
 
     const data = response.data;
+    this.assertExactLocation(data.location?.name, data.location?.region, lookup);
     const today = data.forecast.forecastday[0];
 
     return {
@@ -103,14 +161,24 @@ export class WeatherService {
     };
   }
 
-  private async fetchFromOpenWeather(city: string): Promise<WeatherData> {
-    const [location] = (
-      await axios.get(this.openWeatherGeoUrl, {
-        params: { q: `${city},BR`, limit: 1, appid: this.apiKey },
+  private async fetchFromOpenWeather(lookup: WeatherLookup): Promise<WeatherData> {
+    const locations = (
+      await axios.get<OpenWeatherLocation[]>(this.openWeatherGeoUrl, {
+        params: {
+          q: this.buildQueryLocation(lookup, true),
+          limit: 5,
+          appid: this.apiKey,
+        },
       })
     ).data;
 
-    if (!location) throw new AppError(`Cidade "${city}" não localizada no serviço de clima`, 404);
+    const location = this.pickExactLocation(locations, lookup);
+    if (!location) {
+      throw new AppError(
+        `Localidade "${lookup.city}${lookup.stateName ? `, ${lookup.stateName}` : ''}" não localizada no serviço de clima`,
+        404,
+      );
+    }
 
     const [currentResponse, forecastResponse] = await Promise.all([
       axios.get(`${this.openWeatherBaseUrl}/weather`, {
@@ -125,9 +193,13 @@ export class WeatherService {
     const forecast = forecastResponse.data;
     const forecastItems = forecast.list ?? [];
 
+    const resolvedCity = location.local_names?.pt ?? location.name ?? current.name;
+    const resolvedState = location.state ?? lookup.stateName ?? this.resolveStateName(lookup.stateCode);
+    this.assertExactLocation(resolvedCity, resolvedState, lookup);
+
     return {
-      cidade: location.local_names?.pt ?? location.name ?? current.name,
-      estado: location.state ?? '',
+      cidade: resolvedCity,
+      estado: resolvedState ?? '',
       latitude: location.lat,
       longitude: location.lon,
       temperatura: Math.round(current.main.temp),
@@ -148,6 +220,70 @@ export class WeatherService {
       previsaoCompleta: this.groupOpenWeatherForecast(forecastItems),
       alertas: [],
     };
+  }
+
+  private buildQueryLocation(lookup: WeatherLookup, includeBrazilCountryCode = false): string {
+    const stateName = lookup.stateName ?? this.resolveStateName(lookup.stateCode);
+    if (!stateName) return lookup.city;
+    return includeBrazilCountryCode
+      ? `${lookup.city},${stateName},BR`
+      : `${lookup.city}, ${stateName}, Brazil`;
+  }
+
+  private resolveStateName(stateCode?: string, stateName?: string): string | undefined {
+    const trimmedStateName = stateName?.trim();
+    if (trimmedStateName) return trimmedStateName;
+
+    const trimmedCode = stateCode?.trim().toUpperCase();
+    if (!trimmedCode) return undefined;
+    return BRAZIL_STATES[trimmedCode] ?? trimmedCode;
+  }
+
+  private pickExactLocation(locations: OpenWeatherLocation[], lookup: WeatherLookup): OpenWeatherLocation | undefined {
+    if (!locations.length) return undefined;
+
+    const expectedCity = this.normalizeText(lookup.city);
+    const expectedState = this.normalizeText(lookup.stateName ?? this.resolveStateName(lookup.stateCode) ?? '');
+
+    const exact = locations.find((location) => {
+      const locationCity = this.normalizeText(location.local_names?.pt ?? location.name ?? '');
+      const locationState = this.normalizeText(location.state ?? '');
+      if (!locationCity || locationCity !== expectedCity) return false;
+      if (!expectedState) return true;
+      return locationState === expectedState;
+    });
+
+    return exact ?? (!expectedState ? locations[0] : undefined);
+  }
+
+  private assertExactLocation(actualCity: string | undefined, actualState: string | undefined, lookup: WeatherLookup): void {
+    const expectedCity = this.normalizeText(lookup.city);
+    const expectedState = this.normalizeText(lookup.stateName ?? this.resolveStateName(lookup.stateCode) ?? '');
+    const resolvedCity = this.normalizeText(actualCity ?? '');
+    const resolvedState = this.normalizeText(actualState ?? '');
+
+    if (!resolvedCity || resolvedCity !== expectedCity) {
+      throw new AppError(
+        `Localidade "${lookup.city}${lookup.stateName ? `, ${lookup.stateName}` : ''}" não localizada no serviço de clima`,
+        404,
+      );
+    }
+
+    if (expectedState && resolvedState && resolvedState !== expectedState) {
+      throw new AppError(
+        `Localidade "${lookup.city}${lookup.stateName ? `, ${lookup.stateName}` : ''}" não localizada no serviço de clima`,
+        404,
+      );
+    }
+  }
+
+  private normalizeText(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
   }
 
   private normalizeWeatherApiIcon(icon: string): string {
