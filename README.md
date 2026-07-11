@@ -103,6 +103,9 @@ projeto-teste/
 
 A forma recomendada de executar e validar o projeto completo é usando o **Docker Compose**.
 
+> Importante: para popular o banco de dados com os usuÃ¡rios iniciais, vocÃª precisa fornecer o arquivo `users.csv.tgz` em `backend/data/`. Sem esse arquivo, o projeto sobe normalmente, mas a carga inicial da tabela `users` nÃ£o acontece.
+
+
 ### Pré-requisitos
 - Ter o **Docker** e o **Docker Compose** instalados na máquina.
 
