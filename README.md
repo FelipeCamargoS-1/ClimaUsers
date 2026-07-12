@@ -35,7 +35,7 @@ graph TD
 - **SOLID & Clean Code**: Cada classe ou módulo possui responsabilidade única. O acesso ao banco é abstraído via padrão *Repository*, enquanto a inteligência do negócio reside na camada de *Service*.
 - **Validation-First**: Uso intensivo do **Zod** para validar dados de entrada no backend (evitando corrupção do banco) e no frontend (garantindo validações amigáveis antes da submissão).
 - **Graceful Shutdown**: Tratamento de encerramento seguro de conexões de banco de dados e servidores Express na recepção de sinais de terminação (`SIGTERM`/`SIGINT`).
-- **Fallback entre provedores**: A consulta usa WeatherAPI e, se a chave for rejeitada, tenta o OpenWeather com a mesma chave. Uma chave válida é obrigatória; os testes automatizados simulam as respostas externas.
+- **Localização precisa por coordenadas**: A consulta usa WeatherAPI e valida cidade e estado. Quando o provedor não reconhece um município do IBGE, o backend obtém coordenadas validadas por município/UF no OpenStreetMap e repete a previsão por latitude/longitude. As coordenadas ficam em cache por 30 dias e as consultas respeitam o limite público do geocodificador.
 
 ---
 

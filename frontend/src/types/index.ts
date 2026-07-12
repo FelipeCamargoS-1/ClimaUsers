@@ -38,4 +38,5 @@ export interface WeatherData {
   temperaturasPorHora: HourlyWeather[];
   previsaoCompleta: DailyForecast[];
   alertas: string[];
+  atribuicaoLocalizacao?: string;
 }

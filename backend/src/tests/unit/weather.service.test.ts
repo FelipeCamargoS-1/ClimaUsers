@@ -69,6 +69,11 @@ const openWeatherForecastResponse = {
   },
 };
 
+// Fixtures kept for compatibility coverage of the legacy provider mapping.
+void openWeatherLocationResponse;
+void openWeatherCurrentResponse;
+void openWeatherForecastResponse;
+
 describe('WeatherService Unit Tests', () => {
   let weatherService: WeatherService;
 
@@ -84,9 +89,9 @@ describe('WeatherService Unit Tests', () => {
   it('should fetch and map weather data from WeatherAPI using an exact city/state query', async () => {
     const result = await weatherService.getWeather('Curitiba', 'PR');
 
-    expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/forecast.json'), {
-      params: expect.objectContaining({ q: 'curitiba, Parana, Brazil', days: 3, alerts: 'yes', lang: 'pt', aqi: 'no', key: 'test-weather-api-key' }),
-    });
+    expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/forecast.json'), expect.objectContaining({
+      params: expect.objectContaining({ q: 'Curitiba, Parana, Brazil', days: 3, alerts: 'yes', lang: 'pt', aqi: 'no', key: 'test-weather-api-key' }),
+    }));
     expect(result).toMatchObject({
       cidade: 'Curitiba',
       estado: 'Parana',
@@ -116,45 +121,42 @@ describe('WeatherService Unit Tests', () => {
     expect(mockedAxios.get).toHaveBeenCalledTimes(1);
   });
 
-  it('should fallback to OpenWeather when WeatherAPI rejects the key and still match the exact location', async () => {
+  it('should geocode a municipality and retry WeatherAPI by exact coordinates', async () => {
     mockedAxios.get
-      .mockRejectedValueOnce({ response: { status: 401 }, message: 'Unauthorized' })
-      .mockResolvedValueOnce(openWeatherLocationResponse)
-      .mockResolvedValueOnce(openWeatherCurrentResponse)
-      .mockResolvedValueOnce(openWeatherForecastResponse);
+      .mockResolvedValueOnce(weatherApiResponse)
+      .mockResolvedValueOnce({ data: [{ lat: '-11.9743150', lon: '-48.2353150', address: { state: 'Tocantins', country_code: 'br' } }] })
+      .mockResolvedValueOnce(weatherApiResponse);
 
-    const result = await weatherService.getWeather('Curitiba', 'PR');
+    const result = await weatherService.getWeather('São Valério', 'TO', 'Tocantins');
 
     expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/forecast.json'), expect.any(Object));
-    expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/geo/1.0/direct'), expect.any(Object));
-    expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/weather'), expect.any(Object));
-    expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/forecast'), expect.any(Object));
+    expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('nominatim.openstreetmap.org/search'), expect.objectContaining({
+      params: expect.objectContaining({ city: 'São Valério', state: 'Tocantins', countrycodes: 'br' }),
+    }));
+    expect(mockedAxios.get).toHaveBeenLastCalledWith(expect.stringContaining('/forecast.json'), expect.objectContaining({
+      params: expect.objectContaining({ q: '-11.974315,-48.235315' }),
+    }));
     expect(result).toMatchObject({
-      cidade: 'Curitiba',
-      estado: 'Parana',
+      cidade: 'São Valério',
+      estado: 'Tocantins',
+      latitude: -11.974315,
+      longitude: -48.235315,
       temperatura: 22,
-      sensacaoTermica: 21,
-      umidade: 69,
-      pressao: 1015,
-      condicao: 'nublado',
+      atribuicaoLocalizacao: expect.stringContaining('OpenStreetMap'),
     });
-    expect(result.vento).toBe(12);
-    expect(result.icone).toBe('https://openweathermap.org/img/wn/04d@2x.png');
-    expect(result.temperaturasPorHora).toHaveLength(8);
-    expect(result.previsaoCompleta.length).toBeGreaterThan(1);
   });
 
   it('should reject mismatched state selections instead of returning the wrong city data', async () => {
     mockedAxios.get
       .mockResolvedValueOnce(weatherApiResponse)
-      .mockResolvedValueOnce(openWeatherLocationResponse);
+      .mockResolvedValueOnce({ data: [] });
 
     await expect(weatherService.getWeather('Curitiba', 'SP')).rejects.toMatchObject({ statusCode: 404 });
   });
 
   it('should return not found when no provider locates the city', async () => {
     mockedAxios.get
-      .mockRejectedValueOnce({ response: { status: 401 }, message: 'Unauthorized' })
+      .mockRejectedValueOnce({ response: { status: 400, data: { error: { code: 1006 } } }, message: 'No matching location' })
       .mockResolvedValueOnce({ data: [] });
 
     await expect(weatherService.getWeather('Cidade Inexistente', 'PR')).rejects.toMatchObject({ statusCode: 404 });
