@@ -69,7 +69,7 @@ const BRAZIL_STATES: Record<string, string> = {
 
 export class WeatherService {
   private readonly apiKey = env.WEATHER_API_KEY;
-  private readonly weatherApiBaseUrl = 'http://api.weatherapi.com/v1';
+  private readonly weatherApiBaseUrl = 'https://api.weatherapi.com/v1';
   private readonly openWeatherGeoUrl = 'https://api.openweathermap.org/geo/1.0/direct';
   private readonly openWeatherBaseUrl = 'https://api.openweathermap.org/data/2.5';
 

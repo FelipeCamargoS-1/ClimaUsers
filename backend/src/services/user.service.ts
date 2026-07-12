@@ -6,10 +6,21 @@ import { ConflictError, NotFoundError } from '../utils/errors';
 export class UserService {
   constructor(private readonly userRepository: IUserRepository) {}
 
+  private isUniqueConstraintError(error: unknown): boolean {
+    return typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002';
+  }
+
   async createUser(data: CreateUserInput): Promise<User> {
     const existingUser = await this.userRepository.findByEmail(data.email);
     if (existingUser) throw new ConflictError('Este e-mail já está sendo utilizado por outro usuário');
-    return this.userRepository.create(data);
+    try {
+      return await this.userRepository.create(data);
+    } catch (error) {
+      if (this.isUniqueConstraintError(error)) {
+        throw new ConflictError('Este e-mail já está sendo utilizado por outro usuário');
+      }
+      throw error;
+    }
   }
 
   async getUserById(id: string): Promise<User> {
@@ -26,7 +37,14 @@ export class UserService {
         throw new ConflictError('Este e-mail já está sendo utilizado por outro usuário');
       }
     }
-    return this.userRepository.update(id, data);
+    try {
+      return await this.userRepository.update(id, data);
+    } catch (error) {
+      if (this.isUniqueConstraintError(error)) {
+        throw new ConflictError('Este e-mail já está sendo utilizado por outro usuário');
+      }
+      throw error;
+    }
   }
 
   async deleteUser(id: string): Promise<void> {

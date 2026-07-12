@@ -24,7 +24,16 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-weather_app}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-weather_users}?schema=public
       WEATHER_API_KEY: ${WEATHER_API_KEY:?Defina WEATHER_API_KEY no arquivo .env}
       ALLOW_PRODUCTION_IMPORT: "true"
-    command: ["sh", "-c", "npx prisma db push && npm run seed:users -- --allow-production"]
+    command:
+      - sh
+      - -c
+      - >-
+        npx prisma db push &&
+        if [ -f data/users.csv.tgz ]; then
+          npm run seed:users -- --allow-production;
+        else
+          echo "data/users.csv.tgz ausente; importação inicial ignorada.";
+        fi
     depends_on:
       postgres: { condition: service_healthy }
 

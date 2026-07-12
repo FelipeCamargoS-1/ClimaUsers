@@ -47,6 +47,14 @@ describe('UserService Unit Tests', () => {
       await expect(userService.updateUser(mockUser.id, { email: 'used@example.com' })).rejects.toThrow(ConflictError);
       expect(mockUserRepository.update).not.toHaveBeenCalled();
     });
+
+    it('should map a concurrent unique-email violation to ConflictError', async () => {
+      mockUserRepository.findById.mockResolvedValue(mockUser);
+      mockUserRepository.findByEmail.mockResolvedValue(null);
+      mockUserRepository.update.mockRejectedValue({ code: 'P2002' });
+
+      await expect(userService.updateUser(mockUser.id, { email: 'used@example.com' })).rejects.toThrow(ConflictError);
+    });
   });
 
   describe('deleteUser', () => {
@@ -97,6 +105,15 @@ describe('UserService Unit Tests', () => {
 
       expect(mockUserRepository.findByEmail).toHaveBeenCalledWith('test@example.com');
       expect(mockUserRepository.create).not.toHaveBeenCalled();
+    });
+
+    it('should map a concurrent unique-email violation to ConflictError', async () => {
+      mockUserRepository.findByEmail.mockResolvedValue(null);
+      mockUserRepository.create.mockRejectedValue({ code: 'P2002' });
+
+      await expect(
+        userService.createUser({ name: 'Another User', email: 'test@example.com' }),
+      ).rejects.toThrow(ConflictError);
     });
   });
 
