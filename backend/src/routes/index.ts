@@ -1,7 +1,9 @@
 ﻿import { Router } from 'express';
 import { prisma } from '../config/database';
+import authRoutes from './auth.routes';
 import userRoutes from './user.routes';
 import weatherRoutes from './weather.routes';
+import { requireAuth, requireCsrf } from '../middlewares/auth.middleware';
 
 const router = Router();
 
@@ -15,7 +17,8 @@ router.get('/health', async (_req, res) => {
   }
 });
 
-router.use('/users', userRoutes);
-router.use('/weather', weatherRoutes);
+router.use('/auth', authRoutes);
+router.use('/users', requireAuth, requireCsrf, userRoutes);
+router.use('/weather', requireAuth, weatherRoutes);
 
 export default router;

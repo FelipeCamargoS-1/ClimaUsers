@@ -23,6 +23,10 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-weather_app}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-weather_users}?schema=public
       WEATHER_API_KEY: ${WEATHER_API_KEY:-}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:${FRONTEND_PORT:-8080}}
+      AUTH_PEPPER: ${AUTH_PEPPER:-change-this-auth-pepper}
+      CSRF_SECRET: ${CSRF_SECRET:-change-this-csrf-secret}
+      SESSION_TTL_HOURS: ${SESSION_TTL_HOURS:-168}
       ALLOW_PRODUCTION_IMPORT: "true"
     command:
       - sh

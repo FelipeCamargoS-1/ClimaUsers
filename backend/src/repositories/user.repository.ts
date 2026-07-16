@@ -1,39 +1,54 @@
-import { Prisma, User } from '@prisma/client';
 import { prisma } from '../config/database';
 
+export const publicUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+export type PublicUser = {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export interface IUserRepository {
-  create(data: Prisma.UserCreateInput): Promise<User>;
-  findById(id: string): Promise<User | null>;
-  findByEmail(email: string): Promise<User | null>;
-  update(id: string, data: Prisma.UserUpdateInput): Promise<User>;
-  delete(id: string): Promise<User>;
-  findAll(params: { skip: number; take: number; orderBy: Prisma.UserOrderByWithRelationInput; where?: Prisma.UserWhereInput }): Promise<{ users: User[]; total: number }>;
+  create(data: { name: string; email: string }): Promise<PublicUser>;
+  findById(id: string): Promise<PublicUser | null>;
+  findByEmail(email: string): Promise<PublicUser | null>;
+  update(id: string, data: { name?: string; email?: string }): Promise<PublicUser>;
+  delete(id: string): Promise<PublicUser>;
+  findAll(params: { skip: number; take: number; orderBy: Record<string, 'asc' | 'desc'>; where?: Record<string, unknown> }): Promise<{ users: PublicUser[]; total: number }>;
 }
 
 export class UserRepository implements IUserRepository {
-  create(data: Prisma.UserCreateInput): Promise<User> {
-    return prisma.user.create({ data });
+  create(data: { name: string; email: string }): Promise<PublicUser> {
+    return prisma.user.create({ data, select: publicUserSelect });
   }
 
-  findById(id: string): Promise<User | null> {
-    return prisma.user.findUnique({ where: { id } });
+  findById(id: string): Promise<PublicUser | null> {
+    return prisma.user.findUnique({ where: { id }, select: publicUserSelect });
   }
 
-  findByEmail(email: string): Promise<User | null> {
-    return prisma.user.findUnique({ where: { email } });
+  findByEmail(email: string): Promise<PublicUser | null> {
+    return prisma.user.findUnique({ where: { email }, select: publicUserSelect });
   }
 
-  update(id: string, data: Prisma.UserUpdateInput): Promise<User> {
-    return prisma.user.update({ where: { id }, data });
+  update(id: string, data: { name?: string; email?: string }): Promise<PublicUser> {
+    return prisma.user.update({ where: { id }, data, select: publicUserSelect });
   }
 
-  delete(id: string): Promise<User> {
-    return prisma.user.delete({ where: { id } });
+  delete(id: string): Promise<PublicUser> {
+    return prisma.user.delete({ where: { id }, select: publicUserSelect });
   }
 
-  async findAll(params: { skip: number; take: number; orderBy: Prisma.UserOrderByWithRelationInput; where?: Prisma.UserWhereInput }): Promise<{ users: User[]; total: number }> {
+  async findAll(params: { skip: number; take: number; orderBy: Record<string, 'asc' | 'desc'>; where?: Record<string, unknown> }): Promise<{ users: PublicUser[]; total: number }> {
     const [users, total] = await Promise.all([
-      prisma.user.findMany({ skip: params.skip, take: params.take, orderBy: params.orderBy, where: params.where }),
+      prisma.user.findMany({ skip: params.skip, take: params.take, orderBy: params.orderBy, where: params.where, select: publicUserSelect }),
       prisma.user.count({ where: params.where }),
     ]);
     return { users, total };

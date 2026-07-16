@@ -8,6 +8,10 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   DATABASE_URL: z.string(),
   WEATHER_API_KEY: z.string().optional().default(''),
+  FRONTEND_ORIGIN: z.string().default('http://localhost:8080'),
+  AUTH_PEPPER: z.string().default('change-this-auth-pepper'),
+  CSRF_SECRET: z.string().default('change-this-csrf-secret'),
+  SESSION_TTL_HOURS: z.coerce.number().int().positive().default(168),
 });
 
 const parsed = envSchema.safeParse(process.env);

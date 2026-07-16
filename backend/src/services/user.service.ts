@@ -1,6 +1,5 @@
-import { Prisma, User } from '@prisma/client';
 import { CreateUserInput, ListUsersQuery, UpdateUserInput } from '../schemas/user.schema';
-import { IUserRepository } from '../repositories/user.repository';
+import { IUserRepository, PublicUser } from '../repositories/user.repository';
 import { ConflictError, NotFoundError } from '../utils/errors';
 
 export class UserService {
@@ -10,7 +9,7 @@ export class UserService {
     return typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002';
   }
 
-  async createUser(data: CreateUserInput): Promise<User> {
+  async createUser(data: CreateUserInput): Promise<PublicUser> {
     const existingUser = await this.userRepository.findByEmail(data.email);
     if (existingUser) throw new ConflictError('Este e-mail já está sendo utilizado por outro usuário');
     try {
@@ -23,13 +22,13 @@ export class UserService {
     }
   }
 
-  async getUserById(id: string): Promise<User> {
+  async getUserById(id: string): Promise<PublicUser> {
     const user = await this.userRepository.findById(id);
     if (!user) throw new NotFoundError('Usuário não encontrado');
     return user;
   }
 
-  async updateUser(id: string, data: UpdateUserInput): Promise<User> {
+  async updateUser(id: string, data: UpdateUserInput): Promise<PublicUser> {
     await this.getUserById(id);
     if (data.email) {
       const userWithEmail = await this.userRepository.findByEmail(data.email);
@@ -53,7 +52,7 @@ export class UserService {
   }
 
   async listUsers(query: ListUsersQuery) {
-    const where: Prisma.UserWhereInput = {};
+    const where: Record<string, unknown> = {};
     if (query.name) where.name = { contains: query.name };
     if (query.email) where.email = { contains: query.email };
     if (query.search) where.OR = [{ name: { contains: query.search } }, { email: { contains: query.search } }];
@@ -68,4 +67,3 @@ export class UserService {
     return { users, pagination: { total, page: query.page, limit: query.limit, pages: Math.ceil(total / query.limit) } };
   }
 }
-
