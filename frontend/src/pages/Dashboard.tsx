@@ -1,168 +1,243 @@
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, BarChart3, CloudSun, Droplets, Gauge, Plus, Search, Thermometer, TrendingUp, Users, Wind } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { CalendarDays, CloudSun, Eye, MapPin, Thermometer, UserPlus, Users } from 'lucide-react';
 import { useUsersList } from '../hooks/useUsers';
 import { useWeatherQuery } from '../hooks/useWeather';
 
 export function Dashboard() {
   const { data: usersData, isLoading: usersLoading } = useUsersList({ page: 1, limit: 5, sortBy: 'createdAt', sortOrder: 'desc' });
-  const spWeather = useWeatherQuery({ city: 'São Paulo', stateCode: 'SP', stateName: 'São Paulo' });
-  const rjWeather = useWeatherQuery({ city: 'Rio de Janeiro', stateCode: 'RJ', stateName: 'Rio de Janeiro' });
-  const dfWeather = useWeatherQuery({ city: 'Brasília', stateCode: 'DF', stateName: 'Distrito Federal' });
-  const totalUsers = usersData?.pagination?.total ?? 0;
+  const weather = useWeatherQuery({ city: 'Curitiba', stateCode: 'PR', stateName: 'Parana' });
+
   const users = usersData?.data ?? [];
-  const mainWeather = spWeather.data;
-  const hourly = mainWeather?.temperaturasPorHora?.filter((_, index) => index % 3 === 0).slice(0, 8) ?? [];
-  const maxHourlyTemp = Math.max(...hourly.map((hour) => hour.temperatura), 1);
-  const forecast = mainWeather?.previsaoCompleta ?? [];
+  const totalUsers = usersData?.pagination?.total ?? 0;
+  const currentWeather = weather.data;
+  const formattedNow = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date());
+  const formattedDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date());
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-full rounded-[28px] bg-[#f7f8fb] p-4 text-[#1f2937] shadow-[inset_0_0_0_1px_rgba(15,23,42,0.04)] dark:bg-[#0f172a] dark:text-slate-100 md:p-6">
-      <section className="rounded-[26px] border border-white bg-white px-5 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900 md:px-7">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="inline-flex rounded-full bg-[#f1f3ff] px-3 py-1 text-xs font-semibold text-[#5b5ce2]">Usuários e clima</div>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 dark:text-white">Dashboard</h1>
-            <p className="mt-1 text-sm text-slate-500">Acompanhe os usuários cadastrados e a previsão das principais cidades brasileiras.</p>
+    <div className="space-y-7">
+      <section>
+        <h1 className="text-[34px] font-semibold tracking-[-0.03em] text-[#181d27]">Bem-vindo de volta, Ricardo! <span className="text-[30px]">👋</span></h1>
+        <p className="mt-3 text-[15px] text-[#5e677b]">Aqui está um resumo geral da sua aplicação.</p>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-4">
+        <MetricCard
+          icon={Users}
+          iconClassName="bg-[linear-gradient(180deg,#f2e9ff_0%,#f8f4ff_100%)] text-[#6c3df1]"
+          label="Total de usuários"
+          value={usersLoading ? '...' : totalUsers.toLocaleString('pt-BR')}
+          accent="+12 novos esta semana ↗"
+          accentClassName="text-[#16a34a]"
+        />
+        <MetricCard
+          icon={Thermometer}
+          iconClassName="bg-[linear-gradient(180deg,#e4f0ff_0%,#f3f8ff_100%)] text-[#246bff]"
+          label="Temperatura atual"
+          value={currentWeather ? `${currentWeather.temperatura}°C` : '--'}
+          accent={currentWeather ? `Sensação térmica ${currentWeather.sensacaoTermica}°C` : 'Carregando clima'}
+        />
+        <MetricCard
+          icon={MapPin}
+          iconClassName="bg-[linear-gradient(180deg,#e6f8ea_0%,#f2fbf4_100%)] text-[#16a34a]"
+          label="Cidade consultada"
+          value={currentWeather ? `${currentWeather.cidade}, PR` : '--'}
+          valueClassName="text-[#16a34a]"
+          accent={`Última atualização: ${formattedNow}`}
+        />
+        <MetricCard
+          icon={CalendarDays}
+          iconClassName="bg-[linear-gradient(180deg,#fff1d9_0%,#fff8eb_100%)] text-[#f59e0b]"
+          label="Última atualização"
+          value={formattedNow}
+          valueClassName="text-[#f28c13]"
+          accent={formattedDate}
+        />
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.58fr)_minmax(360px,0.82fr)]">
+        <div className="rounded-[26px] border border-[#e8edf5] bg-white shadow-[0_18px_45px_rgba(120,138,165,0.08)]">
+          <div className="flex items-center justify-between border-b border-[#edf1f7] px-6 py-5">
+            <h2 className="text-[18px] font-semibold text-[#1c2333]">Usuários recentes</h2>
+            <Link to="/users" className="text-[15px] font-medium text-[#6c3df1]">Ver todos</Link>
           </div>
-          <div className="flex gap-3">
-            <Link to="/users" className="inline-flex h-10 items-center gap-2 rounded-xl border bg-white px-4 text-sm font-semibold dark:border-slate-700 dark:bg-slate-900">
-              <Plus className="h-4 w-4" />
-              Novo usuário
-            </Link>
-            <Link to="/weather" className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#5b5ce2] px-4 text-sm font-semibold text-white">
-              <Search className="h-4 w-4" />
-              Consultar clima
+
+          <div className="overflow-hidden">
+            <table className="w-full">
+              <thead className="border-b border-[#edf1f7] bg-white text-left">
+                <tr className="text-[15px] font-medium text-[#4b5567]">
+                  <th className="px-6 py-4">Nome</th>
+                  <th className="px-6 py-4">Email</th>
+                  <th className="px-6 py-4">Data de cadastro</th>
+                  <th className="px-6 py-4">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.length ? users.map((user, index) => (
+                  <tr key={user.id} className="border-b border-[#f1f4f9] text-[15px] text-[#222a3c] last:border-b-0">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-4">
+                        <div className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold ${avatarTone(index)}`}>
+                          {initials(user.name)}
+                        </div>
+                        <span>{user.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-[#3d465a]">{user.email}</td>
+                    <td className="px-6 py-4 text-[#3d465a]">{formatDateTime(user.createdAt)}</td>
+                    <td className="px-6 py-4">
+                      <button type="button" className="flex h-9 w-14 items-center justify-center rounded-xl border border-[#d8caff] text-[#6c3df1]">
+                        <Eye className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-10 text-center text-sm text-[#7f889a]">Nenhum usuário encontrado.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="px-6 py-6">
+            <Link to="/users" className="mx-auto flex h-12 w-fit items-center justify-center gap-3 rounded-2xl bg-[linear-gradient(180deg,#f0e8ff_0%,#ede5ff_100%)] px-8 text-[15px] font-semibold text-[#6c3df1]">
+              Ver todos os usuários
+              <span className="text-lg">›</span>
             </Link>
           </div>
         </div>
-      </section>
 
-      <section className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric label="Usuários" value={usersLoading ? '...' : totalUsers.toLocaleString('pt-BR')} detail="Total cadastrado" icon={Users} />
-        <Metric label="São Paulo" value={mainWeather ? `${mainWeather.temperatura}°C` : '...'} detail={mainWeather?.condicao ?? 'Carregando clima'} icon={CloudSun} />
-        <Metric label="Umidade" value={mainWeather ? `${mainWeather.umidade}%` : '...'} detail={mainWeather ? `${mainWeather.cidade}, ${mainWeather.estado}` : 'Aguardando dados'} icon={Droplets} />
-        <Metric label="Vento" value={mainWeather ? `${mainWeather.vento} km/h` : '...'} detail={mainWeather ? `Sensação de ${mainWeather.sensacaoTermica}°C` : 'Aguardando dados'} icon={Wind} />
-      </section>
-
-      <section className="mt-5 grid gap-5 xl:grid-cols-12">
-        <div className="rounded-[26px] border border-white bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900 xl:col-span-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">Clima agora</p>
-              <h2 className="mt-1 text-xl font-bold">{mainWeather ? `${mainWeather.cidade}, ${mainWeather.estado}` : 'Carregando cidade'}</h2>
-            </div>
-            <Link to="/weather" className="inline-flex items-center gap-1 text-sm font-semibold text-[#5b5ce2]">
-              Ver detalhes <ArrowUpRight className="h-4 w-4" />
-            </Link>
-          </div>
-          <div className="mt-6 grid gap-5 lg:grid-cols-[260px_1fr]">
-            <div className="rounded-[24px] bg-[#f4f6ff] p-5 dark:bg-slate-800">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-slate-500">Agora</span>
-                {mainWeather?.icone && <img src={mainWeather.icone} alt={mainWeather.condicao} className="h-12 w-12" />}
-              </div>
-              <div className="mt-8 text-6xl font-black">{mainWeather?.temperatura ?? '--'}<span className="text-2xl text-slate-400">°C</span></div>
-              <p className="mt-3 text-sm font-semibold text-slate-600 dark:text-slate-300">{mainWeather?.condicao ?? 'Aguardando dados'}</p>
-            </div>
-            <div className="rounded-[24px] border p-5 dark:border-slate-800">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-bold">Temperatura por hora</h3>
-                  <p className="text-xs text-slate-400">Variação ao longo do dia</p>
-                </div>
-                <BarChart3 className="h-5 w-5 text-[#5b5ce2]" />
-              </div>
-              <div className="mt-6 flex h-40 items-end gap-3">
-                {hourly.map((hour) => (
-                  <div key={hour.hora} className="flex flex-1 flex-col items-center gap-2">
-                    <span className="text-[11px] font-semibold text-slate-400">{hour.temperatura}°</span>
-                    <div className="flex h-28 w-full items-end rounded-full bg-[#eef0f6] p-1 dark:bg-slate-800">
-                      <div className="w-full rounded-full bg-[#5b5ce2]" style={{ height: `${Math.max((hour.temperatura / maxHourlyTemp) * 100, 18)}%` }} />
-                    </div>
-                    <span className="text-[10px] text-slate-400">{hour.hora}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        <aside className="grid gap-5 xl:col-span-4">
-          <div className="rounded-[26px] border border-white bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900">
+        <div className="space-y-5">
+          <div className="rounded-[26px] border border-[#e8edf5] bg-white p-5 shadow-[0_18px_45px_rgba(120,138,165,0.08)]">
             <div className="flex items-center justify-between">
-              <h2 className="font-bold">Condições</h2>
-              <Gauge className="h-5 w-5 text-[#5b5ce2]" />
-            </div>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <Mini label="Sensação" value={mainWeather ? `${mainWeather.sensacaoTermica}°C` : '--'} icon={Thermometer} />
-              <Mini label="Vento" value={mainWeather ? `${mainWeather.vento} km/h` : '--'} icon={Wind} />
-              <Mini label="Umidade" value={mainWeather ? `${mainWeather.umidade}%` : '--'} icon={Droplets} />
-              <Mini label="Pressão" value={mainWeather ? `${mainWeather.pressao} hPa` : '--'} icon={Gauge} />
-            </div>
-          </div>
-          <div className="rounded-[26px] bg-[#151821] p-5 text-white">
-            <div className="flex items-center justify-between">
-              <h2 className="font-bold">Outras cidades</h2>
-              <TrendingUp className="h-5 w-5 text-emerald-300" />
-            </div>
-            <City name="São Paulo" temp={spWeather.data?.temperatura} condition={spWeather.data?.condicao} />
-            <City name="Rio de Janeiro" temp={rjWeather.data?.temperatura} condition={rjWeather.data?.condicao} />
-            <City name="Brasília" temp={dfWeather.data?.temperatura} condition={dfWeather.data?.condicao} />
-          </div>
-        </aside>
-      </section>
-
-      <section className="mt-5 grid gap-5 xl:grid-cols-12">
-        <div className="rounded-[26px] border border-white bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900 xl:col-span-7">
-          <div className="flex items-center justify-between">
-            <h2 className="font-bold">Usuários recentes</h2>
-            <Link to="/users" className="text-sm font-semibold text-[#5b5ce2]">Ver todos</Link>
-          </div>
-          <div className="mt-4 divide-y dark:divide-slate-800">
-            {users.length ? users.map((user) => (
-              <div key={user.id} className="flex justify-between gap-4 py-3">
-                <div className="min-w-0">
-                  <p className="truncate font-semibold">{user.name}</p>
-                  <p className="truncate text-xs text-slate-400">{user.email}</p>
-                </div>
-                <span className="shrink-0 text-xs text-slate-400">{new Date(user.createdAt).toLocaleDateString('pt-BR')}</span>
+              <div className="flex items-center gap-2 text-[18px] font-semibold text-[#1c2333]">
+                <CloudSun className="h-5 w-5 text-[#444b5d]" />
+                Clima recente
               </div>
-            )) : <p className="py-8 text-center text-sm text-slate-400">Nenhum usuário encontrado.</p>}
-          </div>
-        </div>
-        <div className="rounded-[26px] border border-white bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900 xl:col-span-5">
-          <div className="flex items-center justify-between">
-            <h2 className="font-bold">Próximos dias</h2>
-            <CloudSun className="h-5 w-5 text-[#5b5ce2]" />
-          </div>
-          <div className="mt-4 space-y-3">
-            {forecast.length ? forecast.map((day) => (
-              <div key={day.data} className="flex items-center justify-between rounded-2xl bg-[#f7f8fb] px-4 py-3 dark:bg-slate-800">
-                <div className="flex items-center gap-3">
-                  {day.icone && <img src={day.icone} alt={day.condicao} className="h-9 w-9" />}
+              <Link to="/weather" className="text-[15px] font-medium text-[#6c3df1]">Ver previsão completa</Link>
+            </div>
+
+            <div className="mt-5 rounded-[22px] bg-[linear-gradient(180deg,#eaf4ff_0%,#f6fbff_100%)] p-6">
+              <div className="grid items-center gap-6 md:grid-cols-[1fr_auto]">
+                <div className="flex items-center gap-5">
+                  {currentWeather?.icone ? <img src={currentWeather.icone} alt={currentWeather.condicao} className="h-24 w-24" /> : <CloudSun className="h-20 w-20 text-[#ffbf2f]" />}
                   <div>
-                    <p className="font-semibold">{day.data}</p>
-                    <p className="text-xs text-slate-400">{day.condicao}</p>
+                    <div className="text-[46px] font-semibold leading-none text-[#171d29]">{currentWeather?.temperatura ?? '--'}°C</div>
+                    <div className="mt-3 text-[15px] font-semibold text-[#1c2333]">Curitiba, PR</div>
+                    <div className="mt-1 text-[15px] text-[#505a70]">{currentWeather?.condicao ?? 'Carregando'}</div>
                   </div>
                 </div>
-                <b>{day.minima}° / {day.maxima}°</b>
+
+                <div className="space-y-4 text-[15px] text-[#2a3347]">
+                  <InfoRow label="Sensação térmica" value={currentWeather ? `${currentWeather.sensacaoTermica}°C` : '--'} />
+                  <InfoRow label="Umidade" value={currentWeather ? `${currentWeather.umidade}%` : '--'} />
+                  <InfoRow label="Vento" value={currentWeather ? `${currentWeather.vento} km/h` : '--'} />
+                  <InfoRow label="Máxima" value={currentWeather?.previsaoCompleta?.[0] ? `${currentWeather.previsaoCompleta[0].maxima}°C` : '--'} />
+                  <InfoRow label="Mínima" value={currentWeather?.previsaoCompleta?.[0] ? `${currentWeather.previsaoCompleta[0].minima}°C` : '--'} />
+                </div>
               </div>
-            )) : <p className="py-8 text-center text-sm text-slate-400">Previsão indisponível no momento.</p>}
+            </div>
+          </div>
+
+          <div className="rounded-[26px] border border-[#e8edf5] bg-white p-5 shadow-[0_18px_45px_rgba(120,138,165,0.08)]">
+            <h2 className="text-[18px] font-semibold text-[#1c2333]">Ações rápidas</h2>
+
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <Link to="/users" className="flex items-center gap-4 rounded-[20px] bg-[linear-gradient(135deg,#f3e9ff_0%,#fbf7ff_100%)] p-5">
+                <div className="flex h-16 w-16 items-center justify-center rounded-[18px] bg-[#e9dcff] text-[#6c3df1]">
+                  <UserPlus className="h-8 w-8" />
+                </div>
+                <div>
+                  <div className="text-[16px] font-semibold text-[#6c3df1]">Novo usuário</div>
+                  <div className="mt-1 text-[15px] text-[#505a70]">Cadastrar novo usuário</div>
+                </div>
+              </Link>
+
+              <Link to="/weather" className="flex items-center gap-4 rounded-[20px] bg-[linear-gradient(135deg,#e9f2ff_0%,#f5f9ff_100%)] p-5">
+                <div className="flex h-16 w-16 items-center justify-center rounded-[18px] bg-[#d9e9ff] text-[#246bff]">
+                  <CloudSun className="h-8 w-8" />
+                </div>
+                <div>
+                  <div className="text-[16px] font-semibold text-[#246bff]">Consultar clima</div>
+                  <div className="mt-1 text-[15px] text-[#505a70]">Ver clima de uma cidade</div>
+                </div>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
-    </motion.div>
+    </div>
   );
 }
 
-function Metric({ label, value, detail, icon: Icon }: { label: string; value: string; detail: string; icon: typeof Users }) {
-  return <div className="rounded-[22px] border border-white bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.055)] dark:border-slate-800 dark:bg-slate-900"><div className="flex justify-between"><div><p className="text-xs font-semibold uppercase text-slate-400">{label}</p><p className="text-2xl font-bold">{value}</p></div><div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#eef0ff] text-[#5b5ce2]"><Icon className="h-5 w-5" /></div></div><p className="mt-4 text-xs font-semibold text-slate-400">{detail}</p></div>;
+function MetricCard({
+  icon: Icon,
+  iconClassName,
+  label,
+  value,
+  accent,
+  accentClassName,
+  valueClassName,
+}: {
+  icon: typeof Users;
+  iconClassName: string;
+  label: string;
+  value: string;
+  accent: string;
+  accentClassName?: string;
+  valueClassName?: string;
+}) {
+  return (
+    <div className="rounded-[24px] border border-[#e8edf5] bg-white p-6 shadow-[0_18px_45px_rgba(120,138,165,0.08)]">
+      <div className="flex items-center gap-5">
+        <div className={`flex h-20 w-20 items-center justify-center rounded-full ${iconClassName}`}>
+          <Icon className="h-9 w-9" />
+        </div>
+        <div>
+          <div className="text-[15px] text-[#4f586c]">{label}</div>
+          <div className={`mt-2 text-[24px] font-semibold text-[#6c3df1] ${valueClassName ?? ''}`}>{value}</div>
+          <div className={`mt-2 text-[15px] ${accentClassName ?? 'text-[#505a70]'}`}>{accent}</div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-function Mini({ label, value, icon: Icon }: { label: string; value: string; icon: typeof Thermometer }) {
-  return <div className="rounded-2xl bg-[#f7f8fb] p-4 dark:bg-slate-800"><Icon className="h-4 w-4 text-[#5b5ce2]" /><p className="mt-3 text-xs text-slate-400">{label}</p><p className="font-bold">{value}</p></div>;
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-6">
+      <span className="text-[#424c61]">{label}</span>
+      <span className="font-semibold text-[#171d29]">{value}</span>
+    </div>
+  );
 }
 
-function City({ name, temp, condition }: { name: string; temp?: number; condition?: string }) {
-  return <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-white/10 px-3 py-3 text-sm"><span className="min-w-0"><span className="block font-semibold">{name}</span><span className="block truncate text-xs text-white/55">{condition ?? 'Carregando'}</span></span><b className="shrink-0">{temp ? `${temp}°C` : '--'}</b></div>;
+function initials(name: string) {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
+}
+
+function avatarTone(index: number) {
+  const tones = [
+    'bg-[#efe7ff] text-[#6c3df1]',
+    'bg-[#e8f0ff] text-[#246bff]',
+    'bg-[#e3f7e8] text-[#16a34a]',
+    'bg-[#fff3db] text-[#f59e0b]',
+    'bg-[#ffe7e7] text-[#ef4444]',
+  ];
+  return tones[index % tones.length];
+}
+
+function formatDateTime(value: string) {
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value));
 }

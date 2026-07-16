@@ -90,7 +90,7 @@ export class WeatherService {
     const normalizedState = this.resolveStateName(stateCode, stateName);
 
     if (!normalizedCity) throw new AppError('Cidade é obrigatória', 400);
-    if (!this.apiKey) throw new AppError('WEATHER_API_KEY não configurada no backend', 500);
+    if (!this.apiKey?.trim()) throw new AppError('WEATHER_API_KEY não configurada no backend', 500);
 
     const cacheKey = `weather:${normalizedCity}:${this.normalizeText(normalizedState ?? 'any')}`;
     const cachedData = weatherCache.get<WeatherData>(cacheKey);
@@ -103,6 +103,9 @@ export class WeatherService {
     } catch (error: any) {
       logger.error(`Erro ao buscar clima para ${city}${normalizedState ? `/${normalizedState}` : ''}: ${error.message}`);
       if (error instanceof AppError) throw error;
+      if (error.response?.status === 401) {
+        throw new AppError('WEATHER_API_KEY inválida ou expirada. Atualize a chave da API de clima no backend.', 502);
+      }
       if (error.response?.status === 400 || error.response?.status === 404) {
         throw new AppError(`Localidade "${city}${normalizedState ? `, ${normalizedState}` : ''}" não localizada no serviço de clima`, 404);
       }

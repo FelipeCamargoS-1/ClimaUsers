@@ -22,7 +22,7 @@ services:
       PORT: 3000
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-weather_app}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-weather_users}?schema=public
-      WEATHER_API_KEY: ${WEATHER_API_KEY:?Defina WEATHER_API_KEY no arquivo .env}
+      WEATHER_API_KEY: ${WEATHER_API_KEY:-}
       ALLOW_PRODUCTION_IMPORT: "true"
     command:
       - sh
@@ -56,7 +56,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args: { VITE_API_URL: "${VITE_API_URL:-http://localhost:3000/api}" }
+      args: { VITE_API_URL: "${VITE_API_URL:-http://localhost:${BACKEND_PORT:-3000}/api}" }
     restart: unless-stopped
     ports: ["${FRONTEND_PORT:-8080}:80"]
     depends_on:

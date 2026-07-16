@@ -90,7 +90,7 @@ projeto-teste/
 | `PORT` | Porta de escuta do servidor Express | `3000` |
 | `NODE_ENV` | Modo de execução do node | `development` |
 | `DATABASE_URL` | String de conexão com o PostgreSQL | `postgresql://weather_app:senha@localhost:5432/weather_users?schema=public` |
-| `WEATHER_API_KEY` | Chave de acesso ao provedor de clima | *(Obrigatória)* |
+| `WEATHER_API_KEY` | Chave de acesso ao provedor de clima | *(Opcional para subir a stack; obrigatória para consultar clima)* |
 
 ### Frontend (Configurável via Docker / Vite `.env`)
 | Variável | Descrição | Valor Padrão |
@@ -114,7 +114,7 @@ A forma recomendada de executar e validar o projeto completo é usando o **Docke
    ```bash
    cd projeto-teste
    ```
-   Copie `.env.example` para `.env` e defina uma senha segura para o PostgreSQL e sua chave da API de clima.
+   Copie `.env.example` para `.env` e defina uma senha segura para o PostgreSQL. A `WEATHER_API_KEY` pode ficar vazia se você quiser apenas subir a stack; nesse caso, apenas as rotas de clima retornarão erro até a chave ser configurada.
 2. Coloque o arquivo `users.csv.tgz` em `backend/data/`; o inicializador fará a importação em massa no PostgreSQL.
 3. Suba todos os containers com o comando:
    ```bash

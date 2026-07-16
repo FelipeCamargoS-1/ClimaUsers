@@ -3,13 +3,15 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+RUN apk add --no-cache openssl
+
 COPY package*.json ./
 RUN npm ci
 
 COPY prisma ./prisma/
 RUN npx prisma generate
 
-COPY tsconfig.json ./
+COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
 COPY data ./data
 
@@ -19,6 +21,8 @@ RUN npm run build
 FROM node:20-alpine AS runner
 
 WORKDIR /app
+
+RUN apk add --no-cache openssl
 
 COPY package*.json ./
 RUN npm ci
@@ -31,7 +35,7 @@ ENV NODE_ENV=production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/data ./data
 COPY --from=builder /app/src ./src
-COPY tsconfig.json ./
+COPY tsconfig.json tsconfig.build.json ./
 
 EXPOSE 3000
 
