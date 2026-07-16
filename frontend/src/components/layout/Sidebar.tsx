@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { CloudSun, Home, LogOut, Moon, Settings, Sun, Users, X } from 'lucide-react';
+import { CloudSun, Home, LogOut, Moon, Settings, Sun, UserCircle2, Users, X } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -52,6 +52,10 @@ export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
           <div className="my-8 h-px bg-[#edf1f7] dark:bg-[#1c2436]" />
 
           <nav className="space-y-2">
+            <NavLink to="/profile" onClick={onClose} className={({ isActive }) => `flex items-center gap-4 rounded-2xl px-4 py-4 text-[15px] font-medium transition ${isActive ? 'bg-[#f3ecff] text-[#6c3df1] dark:bg-[#223150] dark:text-[#c9d8ff]' : 'text-[#2f3749] hover:bg-[#f7f8fc] dark:text-[#d3dded] dark:hover:bg-[#172133]'}`}>
+              <UserCircle2 className="h-5 w-5" />
+              Perfil
+            </NavLink>
             <NavLink to="/settings" onClick={onClose} className={({ isActive }) => `flex items-center gap-4 rounded-2xl px-4 py-4 text-[15px] font-medium transition ${isActive ? 'bg-[#f3ecff] text-[#6c3df1] dark:bg-[#1f2740] dark:text-[#9db4ff]' : 'text-[#2f3749] hover:bg-[#f7f8fc] dark:text-[#c9d3e6] dark:hover:bg-[#151d2d]'}`}>
               <Settings className="h-5 w-5" />
               Configurações

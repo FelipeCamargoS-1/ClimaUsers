@@ -2,8 +2,10 @@ import { Link } from 'react-router-dom';
 import { CalendarDays, CloudSun, Eye, MapPin, Thermometer, UserPlus, Users } from 'lucide-react';
 import { useUsersList } from '../hooks/useUsers';
 import { useWeatherQuery } from '../hooks/useWeather';
+import { useAuth } from '../context/AuthContext';
 
 export function Dashboard() {
+  const { user } = useAuth();
   const { data: usersData, isLoading: usersLoading } = useUsersList({ page: 1, limit: 5, sortBy: 'createdAt', sortOrder: 'desc' });
   const weather = useWeatherQuery({ city: 'Curitiba', stateCode: 'PR', stateName: 'Parana' });
 
@@ -16,8 +18,8 @@ export function Dashboard() {
   return (
     <div className="space-y-7">
       <section>
-        <h1 className="text-[34px] font-semibold tracking-[-0.03em] text-[#181d27]">Bem-vindo de volta, Ricardo! <span className="text-[30px]">👋</span></h1>
-        <p className="mt-3 text-[15px] text-[#5e677b]">Aqui está um resumo geral da sua aplicação.</p>
+        <h1 className="text-[34px] font-semibold tracking-[-0.03em] text-[#181d27] dark:text-[#f6f8fc]">Bem-vindo de volta, {firstName(user?.name) ?? 'usuário'}! <span className="text-[30px]">👋</span></h1>
+        <p className="mt-3 text-[15px] text-[#5e677b] dark:text-[#a9b5c9]">Aqui está um resumo geral da sua aplicação.</p>
       </section>
 
       <section className="grid gap-5 xl:grid-cols-4">
@@ -168,6 +170,10 @@ export function Dashboard() {
       </section>
     </div>
   );
+}
+
+function firstName(name?: string) {
+  return name?.trim().split(/\s+/)[0];
 }
 
 function MetricCard({

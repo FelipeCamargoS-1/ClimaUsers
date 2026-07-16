@@ -1,20 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Bell, ChevronDown, Menu, Moon, Sun } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Bell, ChevronDown, LogOut, Menu, Moon, Settings, Sun, UserCircle2 } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../context/NotificationsContext';
+import { useAuth } from '../../context/AuthContext';
 
 export function Navbar({ onMenuToggle, theme, onThemeToggle }: { onMenuToggle: () => void; theme: 'light' | 'dark'; onThemeToggle: () => void }) {
-  void theme;
-  void onThemeToggle;
-
   const location = useLocation();
+  const navigate = useNavigate();
+  const auth = useAuth();
   const { notifications, unreadCount, isLoading, isRead, markAllAsRead, markAsRead } = useNotifications();
   const [open, setOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
   const title = location.pathname === '/weather'
     ? 'Clima'
     : location.pathname === '/users'
       ? 'Usuários'
+      : location.pathname === '/profile'
+        ? 'Perfil'
       : location.pathname === '/settings'
         ? 'Configurações'
         : 'Dashboard';
@@ -22,16 +26,20 @@ export function Navbar({ onMenuToggle, theme, onThemeToggle }: { onMenuToggle: (
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (panelRef.current && !panelRef.current.contains(event.target as Node)) setOpen(false);
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) setUserMenuOpen(false);
     }
 
-    if (open) window.addEventListener('mousedown', handleClickOutside);
+    if (open || userMenuOpen) window.addEventListener('mousedown', handleClickOutside);
     return () => window.removeEventListener('mousedown', handleClickOutside);
-  }, [open]);
+  }, [open, userMenuOpen]);
 
   const visibleNotifications = useMemo(() => notifications.slice(0, 6), [notifications]);
+  const userName = auth.user?.name ?? 'Usuário';
+  const userEmail = auth.user?.email ?? '';
+  const userInitials = createInitials(userName);
 
   return (
-    <header className="sticky top-0 z-20 flex h-[92px] items-center justify-between border-b border-[#ebeff6] bg-white px-8 dark:border-[#1b2436] dark:bg-[#101725]">
+    <header className="sticky top-0 z-20 flex h-[92px] items-center justify-between border-b border-[#ebeff6] bg-white px-8 dark:border-[#202d42] dark:bg-[#101827]">
       <div className="flex items-center gap-6">
         <button onClick={onMenuToggle} className="rounded-2xl p-2 text-[#6c3df1] lg:hidden">
           <Menu className="h-7 w-7" />
@@ -114,18 +122,55 @@ export function Navbar({ onMenuToggle, theme, onThemeToggle }: { onMenuToggle: (
           ) : null}
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(180deg,#f1c8a0_0%,#c97c4e_100%)] text-sm font-semibold text-white">
-            RS
-          </div>
-          <div className="flex items-center gap-3 text-[15px] text-[#181d27] dark:text-white">
-            <span>Olá, Ricardo</span>
-            <ChevronDown className="h-5 w-5" />
-          </div>
+        <div className="relative" ref={userMenuRef}>
+          <button onClick={() => setUserMenuOpen((current) => !current)} className="flex items-center gap-4 rounded-[18px] px-2 py-2 transition hover:bg-[#f7f9fc] dark:hover:bg-[#172132]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(180deg,#f1c8a0_0%,#c97c4e_100%)] text-sm font-semibold text-white">
+              {userInitials}
+            </div>
+            <div className="hidden text-left sm:block">
+              <div className="text-[15px] font-semibold text-[#181d27] dark:text-[#f5f7fb]">{userName}</div>
+              <div className="mt-0.5 max-w-[220px] truncate text-[13px] text-[#73809a] dark:text-[#9eb0c8]">{userEmail}</div>
+            </div>
+            <ChevronDown className={`h-5 w-5 text-[#5d6880] transition dark:text-[#c7d4e9] ${userMenuOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {userMenuOpen ? (
+            <div className="absolute right-0 top-16 z-30 w-[280px] rounded-[22px] border border-[#e8edf5] bg-white p-3 shadow-[0_22px_60px_rgba(92,113,146,0.18)] dark:border-[#243149] dark:bg-[#131d2d]">
+              <Link to="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 rounded-2xl px-4 py-3 text-[14px] font-medium text-[#1f2738] transition hover:bg-[#f7f9fc] dark:text-[#edf2fa] dark:hover:bg-[#172132]">
+                <UserCircle2 className="h-4 w-4" />
+                Meu perfil
+              </Link>
+              <Link to="/settings" onClick={() => setUserMenuOpen(false)} className="mt-1 flex items-center gap-3 rounded-2xl px-4 py-3 text-[14px] font-medium text-[#1f2738] transition hover:bg-[#f7f9fc] dark:text-[#edf2fa] dark:hover:bg-[#172132]">
+                <Settings className="h-4 w-4" />
+                Configurações
+              </Link>
+              <button
+                type="button"
+                onClick={async () => {
+                  setUserMenuOpen(false);
+                  await auth.logout();
+                  navigate('/login', { replace: true });
+                }}
+                className="mt-1 flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-[14px] font-medium text-[#d14343] transition hover:bg-[#fff5f5] dark:text-[#ff9a9a] dark:hover:bg-[#2a1820]"
+              >
+                <LogOut className="h-4 w-4" />
+                Sair
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
     </header>
   );
+}
+
+function createInitials(name: string) {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
 }
 
 function formatNotificationDate(value: string) {

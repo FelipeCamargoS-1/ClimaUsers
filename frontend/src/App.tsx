@@ -12,6 +12,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard').then((module) => ({ def
 const UserList = lazy(() => import('./pages/UserList').then((module) => ({ default: module.UserList })));
 const WeatherQuery = lazy(() => import('./pages/WeatherQuery').then((module) => ({ default: module.WeatherQuery })));
 const Settings = lazy(() => import('./pages/Settings').then((module) => ({ default: module.Settings })));
+const Profile = lazy(() => import('./pages/Profile').then((module) => ({ default: module.Profile })));
 const Login = lazy(() => import('./pages/Login').then((module) => ({ default: module.Login })));
 const Register = lazy(() => import('./pages/Register').then((module) => ({ default: module.Register })));
 const NotFound = lazy(() => import('./pages/NotFound').then((module) => ({ default: module.NotFound })));
@@ -35,6 +36,7 @@ export function App() {
                   <Route index element={<Dashboard />} />
                   <Route path="users" element={<UserList />} />
                   <Route path="weather" element={<WeatherQuery />} />
+                  <Route path="profile" element={<Profile />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
