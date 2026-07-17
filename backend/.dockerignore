@@ -5,3 +5,6 @@ logs
 *.log
 .env
 .runtime-*
+
+data/*.tgz
+data/*.gz

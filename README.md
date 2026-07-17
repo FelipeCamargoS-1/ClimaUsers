@@ -53,7 +53,7 @@ projeto-teste/
 │   │   ├── repositories/         # Abstração de acesso à base de dados
 │   │   ├── routes/               # Mapeamento e documentação Swagger
 │   │   ├── schemas/              # Regras Zod de validação
-│   │   ├── scripts/              # Seeders e importador de users.csv.gz
+│   │   ├── scripts/              # Seeders e importador de users.csv.tgz
 │   │   ├── services/             # Regras de negócio e chamada clima
 │   │   ├── tests/                # Testes Unitários e Integração (Jest)
 │   │   ├── utils/                # Loggers e formatadores
@@ -102,6 +102,18 @@ projeto-teste/
 ## 🚀 Como Executar o Projeto
 
 A forma recomendada de executar e validar o projeto completo é usando o **Docker Compose**.
+### Checklist rápido do avaliador
+
+```bash
+cp .env.example .env
+# Ajuste as credenciais e informe WEATHER_API_KEY para habilitar o clima.
+# Opcional: coloque users.csv.tgz em backend/data/.
+docker compose up --build
+```
+
+O arquivo de usuários é montado apenas no inicializador do banco e não é incorporado às imagens. Sem o arquivo, a aplicação inicia com banco vazio. Com o arquivo, o backend aguarda a importação terminar. Consulte o procedimento detalhado em [`backend/docs/user-import.md`](backend/docs/user-import.md).
+
+Usuários importados são registros administrativos sem senha. Para testar autenticação, crie uma conta em `/register`.
 
 > Importante: para popular o banco de dados com os usuários iniciais, você precisa fornecer o arquivo `users.csv.tgz` em `backend/data/`. Sem esse arquivo, o projeto sobe normalmente, mas a carga inicial da tabela `users` não acontece.
 
@@ -118,11 +130,12 @@ A forma recomendada de executar e validar o projeto completo é usando o **Docke
 2. Coloque o arquivo `users.csv.tgz` em `backend/data/`; o inicializador fará a importação em massa no PostgreSQL.
 3. Suba todos os containers com o comando:
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
-4. O Compose inicializará três containers:
+4. O Compose inicializará quatro serviços:
    - **Banco de Dados PostgreSQL**: Rodando na porta `5432`.
-   - **Serviço Backend**: Conecta ao PostgreSQL após este estar saudável, aplica o schema, importa os usuários e expõe a API na porta `3000`.
+   - **Inicializador do banco**: Aplica o schema e importa `users.csv.tgz` quando fornecido.
+   - **Serviço Backend**: Inicia após o banco estar pronto e expõe a API na porta `3000`.
    - **Serviço Frontend**: Serve a aplicação React no Nginx na porta `8080`.
 
 ### Acessando os Serviços

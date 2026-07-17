@@ -8,21 +8,18 @@ import { useWeatherQuery } from '../hooks/useWeather';
 import type { WeatherData } from '../types';
 
 export function WeatherQuery() {
-  const [stateCode] = useState('PR');
+  const [stateCode, setStateCode] = useState('PR');
   const [selectedCity, setSelectedCity] = useState('Curitiba');
-  const [typedCity, setTypedCity] = useState('');
-  const [submittedCity, setSubmittedCity] = useState('Curitiba');
+  const [submittedLocation, setSubmittedLocation] = useState({ city: 'Curitiba', stateCode: 'PR', stateName: 'Paraná' });
 
   const states = useBrazilStates();
   const selectedState = states.data?.find((state) => state.sigla === stateCode);
   const cities = useBrazilCities(selectedState?.id);
-  const weather = useWeatherQuery({ city: submittedCity, stateCode, stateName: selectedState?.nome ?? '' });
+  const weather = useWeatherQuery(submittedLocation);
 
   const handleSubmit = () => {
-    const nextCity = typedCity.trim() || selectedCity;
-    if (!nextCity || !stateCode) return;
-    setSubmittedCity(nextCity);
-    void weather.refetch();
+    if (!selectedCity || !selectedState) return;
+    setSubmittedLocation({ city: selectedCity, stateCode: selectedState.sigla, stateName: selectedState.nome });
   };
 
   return (
@@ -30,53 +27,59 @@ export function WeatherQuery() {
       <header className="rounded-[30px] bg-white px-1 py-1">
         <div className="px-1 py-3 sm:px-2">
           <h1 className="text-[34px] font-semibold leading-none tracking-[-0.03em] text-[#18233b]">Consulta de Clima</h1>
-          <p className="mt-3 text-[15px] text-[#63718d]">Escolha uma cidade para ver as informações atualizadas.</p>
+          <p className="mt-3 text-[15px] text-[#63718d]">Escolha primeiro o estado e depois uma cidade da lista oficial do IBGE.</p>
         </div>
       </header>
 
       <section className="rounded-[24px] border border-[#dfe7f2] bg-white p-5 shadow-[0_16px_50px_rgba(134,154,185,0.12)]">
-        <div className="grid gap-4 xl:grid-cols-[1.1fr_1.1fr_236px]">
+        <div className="grid gap-4 xl:grid-cols-[1fr_1.25fr_236px]">
           <div>
-            <div className="mb-3 text-[14px] font-medium text-[#4c5872]">Escolha uma cidade</div>
+            <div className="mb-3 text-[14px] font-medium text-[#4c5872]">1. Escolha o estado</div>
             <label className="flex h-[54px] items-center gap-3 rounded-2xl border border-[#dbe4f0] bg-[#fbfdff] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
               <MapPin className="h-5 w-5 text-[#2f67f6]" />
               <select
-                value={selectedCity}
+                aria-label="Estado"
+                value={stateCode}
                 onChange={(event) => {
-                  setSelectedCity(event.target.value);
-                  if (!typedCity.trim()) setSubmittedCity(event.target.value);
+                  setStateCode(event.target.value);
+                  setSelectedCity('');
                 }}
-                disabled={!stateCode || cities.isLoading}
+                disabled={states.isLoading}
                 className="w-full appearance-none bg-transparent text-[15px] text-[#24314d] outline-none"
               >
-                <option value="">{cities.isLoading ? 'Carregando cidades...' : 'Selecione uma cidade'}</option>
-                {cities.data?.map((item) => <option key={item.id} value={item.nome}>{item.nome} - {stateCode}</option>)}
+                <option value="">{states.isLoading ? 'Carregando estados...' : 'Selecione um estado'}</option>
+                {states.data?.map((state) => <option key={state.id} value={state.sigla}>{state.nome} ({state.sigla})</option>)}
               </select>
               <ChevronDown className="h-5 w-5 text-[#7d88a1]" />
             </label>
           </div>
 
           <div>
-            <div className="mb-3 text-[14px] font-medium text-[#4c5872]">ou digite o nome da cidade</div>
+            <div className="mb-3 text-[14px] font-medium text-[#4c5872]">2. Escolha a cidade</div>
             <label className="flex h-[54px] items-center gap-3 rounded-2xl border border-[#dbe4f0] bg-[#fbfdff] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
-              <Search className="h-5 w-5 text-[#95a0b7]" />
-              <input
-                value={typedCity}
-                onChange={(event) => setTypedCity(event.target.value)}
-                placeholder="Digite o nome da cidade..."
-                className="w-full bg-transparent text-[15px] text-[#24314d] outline-none placeholder:text-[#a4aec2]"
-              />
+              <MapPin className="h-5 w-5 text-[#2f67f6]" />
+              <select
+                aria-label="Cidade"
+                value={selectedCity}
+                onChange={(event) => setSelectedCity(event.target.value)}
+                disabled={!stateCode || cities.isLoading || cities.isError}
+                className="w-full appearance-none bg-transparent text-[15px] text-[#24314d] outline-none"
+              >
+                <option value="">{cities.isLoading ? 'Carregando cidades...' : 'Selecione uma cidade'}</option>
+                {cities.data?.map((city) => <option key={city.id} value={city.nome}>{city.nome}</option>)}
+              </select>
+              <ChevronDown className="h-5 w-5 text-[#7d88a1]" />
             </label>
           </div>
 
           <button
             type="button"
-            disabled={!(typedCity.trim() || selectedCity) || !stateCode}
+            disabled={!selectedCity || !selectedState || weather.isFetching}
             onClick={handleSubmit}
             className="mt-auto flex h-[54px] items-center justify-center gap-3 rounded-2xl bg-[#2f67f6] px-5 text-[18px] font-medium text-white shadow-[0_18px_30px_rgba(47,103,246,0.24)] transition hover:bg-[#255be7] disabled:cursor-not-allowed disabled:bg-[#9cb6f5]"
           >
             <Search className="h-5 w-5" />
-            Consultar
+            {weather.isFetching ? 'Consultando...' : 'Consultar'}
           </button>
         </div>
 
@@ -92,7 +95,6 @@ export function WeatherQuery() {
     </div>
   );
 }
-
 function WeatherDashboard({ data }: { data: WeatherData }) {
   const hourly = useMemo(() => data.temperaturasPorHora.slice(0, 8), [data.temperaturasPorHora]);
   const nextDays = useMemo(() => data.previsaoCompleta.slice(0, 5), [data.previsaoCompleta]);

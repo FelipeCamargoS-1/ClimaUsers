@@ -13,7 +13,6 @@ RUN npx prisma generate
 
 COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
-COPY data ./data
 
 RUN npm run build
 
@@ -33,7 +32,6 @@ RUN npx prisma generate
 ENV NODE_ENV=production
 
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/data ./data
 COPY --from=builder /app/src ./src
 COPY tsconfig.json tsconfig.build.json ./
 

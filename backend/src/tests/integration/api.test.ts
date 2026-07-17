@@ -4,10 +4,14 @@ import app from '../../app';
 import { prisma } from '../../config/database';
 
 jest.mock('axios');
+jest.mock('../../middlewares/auth.middleware', () => ({
+  requireAuth: (_req: unknown, _res: unknown, next: () => void) => next(),
+  requireCsrf: (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
 jest.mock('../../config/database', () => ({
   prisma: {
     user: { create: jest.fn(), findUnique: jest.fn(), findMany: jest.fn(), count: jest.fn(), update: jest.fn(), delete: jest.fn() },
-    $queryRaw: jest.fn(),
+    $queryRaw: jest.fn(), $queryRawUnsafe: jest.fn(), $executeRawUnsafe: jest.fn(),
   },
 }));
 
@@ -165,6 +169,74 @@ describe('API Integration Tests', () => {
 
       expect(response.status).toBe(204);
       expect(response.body).toEqual({});
+    });
+  });
+  describe('Authentication API', () => {
+    it('should register a user and create secure session cookies', async () => {
+      const now = new Date();
+      const user = { id: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d', name: 'Conta Teste', email: 'conta@example.com', createdAt: now, updatedAt: now };
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.$queryRawUnsafe as jest.Mock).mockResolvedValue([user]);
+      (prisma.$executeRawUnsafe as jest.Mock).mockResolvedValue(1);
+
+      const response = await request(app).post('/api/auth/register').send({
+        name: 'Conta Teste',
+        email: 'conta@example.com',
+        password: 'SenhaForte#2026',
+      });
+
+      expect(response.status).toBe(201);
+      expect(response.body.data).toMatchObject({ id: user.id, email: user.email });
+      expect(String(response.headers['set-cookie'])).toContain('auth_session=');
+      expect(String(response.headers['set-cookie'])).toContain('csrf_token=');
+    });
+
+    it('should reject a login for an account without a password', async () => {
+      (prisma.$queryRawUnsafe as jest.Mock).mockResolvedValue([{
+        id: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+        name: 'Importado',
+        email: 'importado@example.com',
+        passwordHash: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }]);
+
+      const response = await request(app).post('/api/auth/login').send({
+        email: 'importado@example.com',
+        password: 'SenhaForte#2026',
+      });
+
+      expect(response.status).toBe(401);
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should report no active session when the cookie is absent', async () => {
+      const response = await request(app).get('/api/auth/me');
+      expect(response.status).toBe(401);
+      expect(response.body.success).toBe(false);
+    });
+    it('should return an active session for a valid cookie', async () => {
+      (prisma.$queryRawUnsafe as jest.Mock).mockResolvedValue([{
+        sessionId: 'session-id',
+        expiresAt: new Date(Date.now() + 60_000),
+        id: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+        name: 'Conta Teste',
+        email: 'conta@example.com',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }]);
+      (prisma.$executeRawUnsafe as jest.Mock).mockResolvedValue(1);
+
+      const response = await request(app).get('/api/auth/me').set('Cookie', 'auth_session=valid-session');
+      expect(response.status).toBe(200);
+      expect(response.body.data.email).toBe('conta@example.com');
+    });
+
+    it('should clear cookies on logout', async () => {
+      (prisma.$executeRawUnsafe as jest.Mock).mockResolvedValue(1);
+      const response = await request(app).post('/api/auth/logout').set('Cookie', 'auth_session=valid-session');
+      expect(response.status).toBe(200);
+      expect(String(response.headers['set-cookie'])).toContain('Expires=Thu, 01 Jan 1970');
     });
   });
 });

@@ -11,6 +11,7 @@ describe('UserService Unit Tests', () => {
     id: 'uuid-123456',
     name: 'Test User',
     email: 'test@example.com',
+    passwordHash: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };

@@ -18,6 +18,8 @@ services:
   database-init:
     build: { context: ./backend, dockerfile: Dockerfile }
     restart: "no"
+    volumes:
+      - ./backend/data:/app/data:ro
     environment: &backend-environment
       PORT: 3000
       NODE_ENV: production
