@@ -53,7 +53,8 @@ projeto-teste/
 │   │   ├── repositories/         # Abstração de acesso à base de dados
 │   │   ├── routes/               # Mapeamento e documentação Swagger
 │   │   ├── schemas/              # Regras Zod de validação
-│   │   ├── scripts/              # Seeders e importador de users.csv.tgz
+│   │   ├── scripts/              # Scripts auxiliares legados (nao usados na carga massiva)
+│   ├── sql/                      # COPY, staging, normalizacao e validacao PostgreSQL
 │   │   ├── services/             # Regras de negócio e chamada clima
 │   │   ├── tests/                # Testes Unitários e Integração (Jest)
 │   │   ├── utils/                # Loggers e formatadores
@@ -134,7 +135,7 @@ Usuários importados são registros administrativos sem senha. Para testar auten
    ```
 4. O Compose inicializará quatro serviços:
    - **Banco de Dados PostgreSQL**: Rodando na porta `5432`.
-   - **Inicializador do banco**: Aplica o schema e importa `users.csv.tgz` quando fornecido.
+   - **Inicializador do banco**: Executa `prisma migrate deploy` e chama o importador SQL pelo `psql`.
    - **Serviço Backend**: Inicia após o banco estar pronto e expõe a API na porta `3000`.
    - **Serviço Frontend**: Serve a aplicação React no Nginx na porta `8080`.
 

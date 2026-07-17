@@ -207,13 +207,22 @@ async function importCsv(
   stats.invalid = await scalar(
     `SELECT COUNT(*) AS value FROM users_import_raw WHERE NOT (${valid})`,
   );
+  const dedupStarted = Date.now();
+  log("Deduplicando por hash sem ordenar o arquivo inteiro...");
+  await client!.query(`CREATE TEMP TABLE users_import_first ON COMMIT DROP AS
+    SELECT lower(btrim(email)) AS email, min(row_num) AS row_num
+    FROM users_import_raw
+    WHERE ${valid}
+    GROUP BY lower(btrim(email))`);
+  await client!.query(`CREATE UNIQUE INDEX users_import_first_row_num_idx ON users_import_first (row_num)`);
   await client!.query(`CREATE TEMP TABLE users_import_unique ON COMMIT DROP AS
-    SELECT DISTINCT ON (lower(btrim(email))) csv_id::uuid AS id, btrim(name) AS name, lower(btrim(email)) AS email
-    FROM users_import_raw WHERE ${valid}
-    ORDER BY lower(btrim(email)), row_num`);
+    SELECT raw.csv_id::uuid AS id, btrim(raw.name) AS name, first.email
+    FROM users_import_first first
+    INNER JOIN users_import_raw raw ON raw.row_num = first.row_num`);
   const candidates = await scalar(
     "SELECT COUNT(*) AS value FROM users_import_unique",
   );
+  log(`${number(candidates)} usuários únicos em ${((Date.now() - dedupStarted) / 1000).toFixed(1)}s`);
   stats.duplicates = stats.loaded - stats.invalid - candidates;
   stats.existing =
     await scalar(`SELECT COUNT(*) AS value FROM users_import_unique s
@@ -298,6 +307,8 @@ async function main(): Promise<void> {
   else {
     await client.query("BEGIN");
     await client.query("SET LOCAL synchronous_commit = off");
+    await client.query("SET LOCAL work_mem = '256MB'");
+    await client.query("SET LOCAL temp_buffers = '128MB'");
     await importCsv(csv, header, stats);
     await client.query("COMMIT");
   }
