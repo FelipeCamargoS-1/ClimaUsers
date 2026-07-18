@@ -26,7 +26,7 @@ export function Profile() {
     <div className="space-y-7">
       <section>
         <h1 className="text-[34px] font-semibold tracking-[-0.03em] text-[#181d27] dark:text-[#f5f7fb]">Meu perfil</h1>
-        <p className="mt-3 text-[15px] text-[#5e677b] dark:text-[#aeb8cb]">Dados reais da sessão autenticada, status da conta e resumo de segurança.</p>
+        <p className="mt-3 text-[15px] text-[#5e677b] dark:text-[#aeb8cb]">Dados reais da sessão autenticada e preferências da conta.</p>
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
@@ -55,21 +55,7 @@ export function Profile() {
           </div>
         </div>
 
-        <div className="space-y-5">
-          <div className="rounded-[28px] border border-[#e8edf5] bg-white p-7 shadow-[0_18px_45px_rgba(120,138,165,0.08)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)]">
-            <h2 className="text-[21px] font-semibold text-[#1c2333] dark:text-[#f6f8fc]">Resumo de segurança</h2>
-            <p className="mt-2 text-[14px] leading-6 text-[#64718a] dark:text-[#a7b4ca]">
-              Sua autenticação está baseada em sessão com cookie `HttpOnly`, proteção CSRF, `AUTH_PEPPER` no backend e headers reforçados por ambiente.
-            </p>
-
-            <div className="mt-6 space-y-3">
-              <SecurityRow label="Sessão do navegador" value="Ativa" tone="success" />
-              <SecurityRow label="Proteção CSRF" value="Habilitada" tone="primary" />
-              <SecurityRow label="Cookies seguros em produção" value="Prontos" tone="neutral" />
-              <SecurityRow label="Origem autorizada" value="Frontend validado" tone="neutral" />
-            </div>
-          </div>
-
+        <div>
           <div className="rounded-[28px] border border-[#e8edf5] bg-white p-7 shadow-[0_18px_45px_rgba(120,138,165,0.08)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)]">
             <h2 className="text-[21px] font-semibold text-[#1c2333] dark:text-[#f6f8fc]">Preferências rápidas</h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -101,29 +87,6 @@ function ProfileMetric({
         <span className="text-[13px] font-medium">{label}</span>
       </div>
       <div className="mt-3 text-[15px] font-semibold text-[#1c2333] dark:text-[#f5f7fb]">{value}</div>
-    </div>
-  );
-}
-
-function SecurityRow({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone: 'success' | 'primary' | 'neutral';
-}) {
-  const toneClass = tone === 'success'
-    ? 'bg-[#edf9f1] text-[#15803d] dark:bg-[#183424] dark:text-[#80e0a5]'
-    : tone === 'primary'
-      ? 'bg-[#f2edff] text-[#6c3df1] dark:bg-[#1d2744] dark:text-[#b9ccff]'
-      : 'bg-[#f4f7fb] text-[#43506a] dark:bg-[#182233] dark:text-[#c0cadc]';
-
-  return (
-    <div className="flex items-center justify-between gap-4 rounded-[20px] bg-[#f8fafc] px-4 py-4 dark:bg-[#172132]">
-      <span className="text-[15px] font-medium text-[#1c2333] dark:text-[#f2f5fb]">{label}</span>
-      <span className={`rounded-full px-3 py-1.5 text-[12px] font-semibold ${toneClass}`}>{value}</span>
     </div>
   );
 }
