@@ -3,6 +3,7 @@ set -eu
 
 archive=/data/users.csv.tgz
 mode=${1:-stream}
+member_cache=/tmp/climausers-users-csv-member
 
 fail() {
   printf '%s\n' "ERRO no arquivo de usuarios: $*" >&2
@@ -10,9 +11,31 @@ fail() {
 }
 
 [ -r "$archive" ] || fail "$archive nao existe ou nao pode ser lido pelo usuario postgres"
-tar -tzf "$archive" >/dev/null 2>&1 || fail "$archive nao e um TGZ valido"
 
-entries=$(tar -tzf "$archive")
+# O hash nao precisa repetir a validacao estrutural; ela acontece antes do COPY.
+if [ "$mode" = "--fingerprint" ]; then
+  sha256sum "$archive" | awk '{print $1}'
+  exit 0
+fi
+
+# O membro foi validado pelo --format na mesma execucao SQL e o bind mount e RO.
+# Assim o COPY faz somente uma descompactacao do fluxo de dados.
+if [ "$mode" = "stream" ]; then
+  [ -r "$member_cache" ] || fail "cache de validacao ausente; execute --format antes do COPY"
+  IFS= read -r csv_entry < "$member_cache"
+  case "$csv_entry" in
+    /*|../*|*/../*|*/..|..|*\\*) fail "entrada perigosa no cache" ;;
+    *.csv|*.CSV) ;;
+    *) fail "membro CSV invalido no cache" ;;
+  esac
+  exec tar -xOzf "$archive" -- "$csv_entry"
+fi
+
+[ "$mode" = "--format" ] || fail "modo desconhecido"
+
+if ! entries=$(tar -tzf "$archive"); then
+  fail "$archive nao e um TGZ valido"
+fi
 csv_count=0
 csv_entry=
 old_ifs=$IFS
@@ -42,15 +65,7 @@ case "$header" in
   *) fail "cabecalho incompativel; esperado: name,email ou id,name,email,phone" ;;
 esac
 
-case "$mode" in
-  --fingerprint)
-    sha256sum "$archive" | awk '{print $1}'
-    ;;
-  --format)
-    printf '%s\n' "$archive_format"
-    ;;
-  stream)
-    exec tar -xOzf "$archive" -- "$csv_entry"
-    ;;
-  *) fail "modo desconhecido" ;;
-esac
+cache_tmp=$member_cache.$$
+printf '%s\n' "$csv_entry" > "$cache_tmp"
+mv -f "$cache_tmp" "$member_cache"
+printf '%s\n' "$archive_format"

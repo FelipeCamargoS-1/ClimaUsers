@@ -256,8 +256,8 @@ SELECT EXISTS (
     ON CONFLICT (email) DO NOTHING
     RETURNING 1
   )
-  UPDATE users_import_stats SET inserted = (SELECT count(*) FROM inserted),
-                                insert_finished_at = clock_timestamp();
+  UPDATE users_import_stats SET inserted = (SELECT count(*) FROM inserted);
+  UPDATE users_import_stats SET insert_finished_at = clock_timestamp();
 
   INSERT INTO public.users_import_history
     (archive_sha256, import_mode, loaded, inserted)

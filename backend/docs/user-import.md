@@ -8,7 +8,9 @@ responsavel pelas migrations e pelo acesso normal da aplicacao.
 
 O arquivo fixo e `backend/data/users.csv.tgz`, montado somente para leitura como
 `/data/users.csv.tgz` no servidor PostgreSQL. O TGZ deve conter exatamente um
-arquivo CSV UTF-8 com o cabecalho abaixo:
+arquivo CSV UTF-8. O formato preferido e `name,email`; o formato legado
+`id,name,email,phone` tambem e aceito, mas `id` e `phone` sao descartados e o UUID
+continua sendo criado pelo PostgreSQL.
 
 ```csv
 name,email
@@ -29,6 +31,9 @@ PostgreSQL. Ele apenas valida o arquivo fixo e transmite o unico CSV; nao analis
 nem transforma registros. Rejeita TGZ invalido, zero ou multiplos CSVs, caminho
 absoluto, `../`, barra invertida e cabecalho diferente. Como nenhum nome vindo do
 arquivo e concatenado em um comando shell, nao existe interpolacao vulneravel.
+Para evitar passagens repetidas por 10 milhoes de linhas, a validacao grava somente
+o nome seguro do membro CSV em `/tmp`; `/data` permanece somente leitura. O hash
+nao repete a validacao estrutural e o `COPY` descompacta apenas o membro ja validado.
 
 A imagem `docker/postgres/Dockerfile` deriva de `postgres:16-alpine` e instala GNU
 tar e coreutils. `COPY FROM PROGRAM` roda no servidor sob o usuario do PostgreSQL;
@@ -168,6 +173,15 @@ docker compose exec postgres psql -U weather_app -d weather_users \
   -f /sql/validation.sql
 ```
 
+### Benchmark da passagem unica
+
+No mesmo Windows/Docker Desktop, o benchmark inicial levou 5 min 35 s no host e
+2 min 8 s na fase COPY/validacao. Depois de eliminar as passagens redundantes do
+TGZ, um reprocessamento idempotente levou 1 min 51,5 s no host e 45,5 s na fase
+COPY/validacao. A segunda medicao utilizou cache de disco aquecido e banco ja
+populado; portanto demonstra o ganho da leitura, mas nao garante o tempo de uma
+carga fria em outra maquina.
+
 Evite repetir `COUNT(*)` durante a carga. Para benchmark, salve o log de `psql` e
 compare as linhas `Time:` e o resumo final. O tempo de descompactacao esta incluido
 no COPY; meca isoladamente apenas para diagnostico com
@@ -217,7 +231,7 @@ concorrente sao os fatores dominantes.
 - TGZ inexistente/permissao: confira o bind mount e `ls -l /data` no postgres.
 - `tar` ausente: reconstrua com `docker compose build --no-cache postgres`.
 - TGZ invalido/multiplos CSVs/path perigoso: recrie o pacote com um unico CSV.
-- cabecalho: deve ser exatamente `name,email` (CRLF e aceito).
+- cabecalho: use `name,email` ou `id,name,email,phone` (CRLF e aceito).
 - CSV malformado/aspas abertas: o proprio parser CSV do COPY encerra com linha/erro.
 - UTF-8 invalido: converta a fonte antes de empacotar; nao force perda de caracteres.
 - campo longo: staging aceita TEXT; valores acima de 255 sao contabilizados e ignorados.
