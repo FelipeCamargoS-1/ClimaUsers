@@ -25,12 +25,12 @@ export function Profile() {
   return (
     <div className="space-y-7">
       <section>
-        <h1 className="text-[34px] font-semibold tracking-[-0.03em] text-[#181d27] dark:text-[#f5f7fb]">Meu perfil</h1>
+        <h1 className="text-[28px] font-semibold tracking-[-0.03em] text-[#181d27] dark:text-[#f5f7fb] sm:text-[34px]">Meu perfil</h1>
         <p className="mt-3 text-[15px] text-[#5e677b] dark:text-[#aeb8cb]">Dados reais da sessão autenticada e preferências da conta.</p>
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
-        <div className="rounded-[28px] border border-[#e8edf5] bg-white p-7 shadow-[0_18px_45px_rgba(120,138,165,0.08)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)]">
+        <div className="rounded-[28px] border border-[#e8edf5] bg-white p-5 shadow-[0_18px_45px_rgba(120,138,165,0.08)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)] sm:p-7">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
             <div className="flex h-28 w-28 items-center justify-center rounded-[28px] bg-[linear-gradient(180deg,#ede4ff_0%,#f8f5ff_100%)] text-[#6c3df1] dark:bg-[linear-gradient(180deg,#233054_0%,#1b2640_100%)] dark:text-[#bfd0ff]">
               <span className="text-[34px] font-semibold tracking-[-0.04em]">{initials(user.name)}</span>
@@ -38,7 +38,7 @@ export function Profile() {
 
             <div className="min-w-0 flex-1">
               <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#7b86a0] dark:text-[#8ea1c4]">Conta autenticada</div>
-              <h2 className="mt-3 truncate text-[30px] font-semibold tracking-[-0.04em] text-[#181d27] dark:text-[#f7f9fc]">{user.name}</h2>
+              <h2 className="mt-3 truncate text-[24px] font-semibold tracking-[-0.04em] text-[#181d27] dark:text-[#f7f9fc] sm:text-[30px]">{user.name}</h2>
               <p className="mt-2 truncate text-[16px] text-[#5c667b] dark:text-[#b5c0d3]">{user.email}</p>
               <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#eef8f1] px-4 py-2 text-[13px] font-semibold text-[#15803d] dark:bg-[#183424] dark:text-[#7ee0a4]">
                 <ShieldCheck className="h-4 w-4" />
@@ -56,7 +56,7 @@ export function Profile() {
         </div>
 
         <div>
-          <div className="rounded-[28px] border border-[#e8edf5] bg-white p-7 shadow-[0_18px_45px_rgba(120,138,165,0.08)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)]">
+          <div className="rounded-[28px] border border-[#e8edf5] bg-white p-5 shadow-[0_18px_45px_rgba(120,138,165,0.08)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)] sm:p-7">
             <h2 className="text-[21px] font-semibold text-[#1c2333] dark:text-[#f6f8fc]">Preferências rápidas</h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <MiniCard title="Tema" value="Sincronizado com sua escolha atual" />

@@ -24,18 +24,18 @@ export function WeatherQuery() {
 
   return (
     <div className="space-y-4 pb-8">
-      <header className="rounded-[30px] bg-white px-1 py-1">
+      <header className="rounded-[30px] bg-white px-1 py-1 dark:bg-[#0b101b]">
         <div className="px-1 py-3 sm:px-2">
-          <h1 className="text-[34px] font-semibold leading-none tracking-[-0.03em] text-[#18233b]">Consulta de Clima</h1>
-          <p className="mt-3 text-[15px] text-[#63718d]">Escolha primeiro o estado e depois uma cidade da lista oficial do IBGE.</p>
+          <h1 className="text-[28px] font-semibold leading-none tracking-[-0.03em] text-[#18233b] dark:text-[#f6f8fc] sm:text-[34px]">Consulta de Clima</h1>
+          <p className="mt-3 text-[15px] text-[#63718d] dark:text-[#a9b5c9]">Escolha primeiro o estado e depois uma cidade da lista oficial do IBGE.</p>
         </div>
       </header>
 
-      <section className="rounded-[24px] border border-[#dfe7f2] bg-white p-5 shadow-[0_16px_50px_rgba(134,154,185,0.12)]">
-        <div className="grid gap-4 xl:grid-cols-[1fr_1.25fr_236px]">
+      <section className="rounded-[24px] border border-[#dfe7f2] bg-white p-4 shadow-[0_16px_50px_rgba(134,154,185,0.12)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)] sm:p-5">
+        <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-[1fr_1.25fr_236px]">
           <div>
-            <div className="mb-3 text-[14px] font-medium text-[#4c5872]">1. Escolha o estado</div>
-            <label className="flex h-[54px] items-center gap-3 rounded-2xl border border-[#dbe4f0] bg-[#fbfdff] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+            <div className="mb-3 text-[14px] font-medium text-[#4c5872] dark:text-[#b4c0d3]">1. Escolha o estado</div>
+            <label className="flex h-[54px] items-center gap-3 rounded-2xl border border-[#dbe4f0] bg-[#fbfdff] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] dark:border-[#30405a] dark:bg-[#172132] dark:shadow-none">
               <MapPin className="h-5 w-5 text-[#2f67f6]" />
               <select
                 aria-label="Estado"
@@ -45,7 +45,7 @@ export function WeatherQuery() {
                   setSelectedCity('');
                 }}
                 disabled={states.isLoading}
-                className="w-full appearance-none bg-transparent text-[15px] text-[#24314d] outline-none"
+                className="w-full appearance-none bg-transparent text-[15px] text-[#24314d] outline-none disabled:cursor-not-allowed disabled:text-[#8b96aa] dark:text-[#f4f7fc] dark:[color-scheme:dark] dark:disabled:text-[#71809a] dark:[&>option]:bg-[#172132] dark:[&>option]:text-[#f4f7fc]"
               >
                 <option value="">{states.isLoading ? 'Carregando estados...' : 'Selecione um estado'}</option>
                 {states.data?.map((state) => <option key={state.id} value={state.sigla}>{state.nome} ({state.sigla})</option>)}
@@ -55,15 +55,15 @@ export function WeatherQuery() {
           </div>
 
           <div>
-            <div className="mb-3 text-[14px] font-medium text-[#4c5872]">2. Escolha a cidade</div>
-            <label className="flex h-[54px] items-center gap-3 rounded-2xl border border-[#dbe4f0] bg-[#fbfdff] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+            <div className="mb-3 text-[14px] font-medium text-[#4c5872] dark:text-[#b4c0d3]">2. Escolha a cidade</div>
+            <label className="flex h-[54px] items-center gap-3 rounded-2xl border border-[#dbe4f0] bg-[#fbfdff] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] dark:border-[#30405a] dark:bg-[#172132] dark:shadow-none">
               <MapPin className="h-5 w-5 text-[#2f67f6]" />
               <select
                 aria-label="Cidade"
                 value={selectedCity}
                 onChange={(event) => setSelectedCity(event.target.value)}
                 disabled={!stateCode || cities.isLoading || cities.isError}
-                className="w-full appearance-none bg-transparent text-[15px] text-[#24314d] outline-none"
+                className="w-full appearance-none bg-transparent text-[15px] text-[#24314d] outline-none disabled:cursor-not-allowed disabled:text-[#8b96aa] dark:text-[#f4f7fc] dark:[color-scheme:dark] dark:disabled:text-[#71809a] dark:[&>option]:bg-[#172132] dark:[&>option]:text-[#f4f7fc]"
               >
                 <option value="">{cities.isLoading ? 'Carregando cidades...' : 'Selecione uma cidade'}</option>
                 {cities.data?.map((city) => <option key={city.id} value={city.nome}>{city.nome}</option>)}
@@ -76,7 +76,7 @@ export function WeatherQuery() {
             type="button"
             disabled={!selectedCity || !selectedState || weather.isFetching}
             onClick={handleSubmit}
-            className="mt-auto flex h-[54px] items-center justify-center gap-3 rounded-2xl bg-[#2f67f6] px-5 text-[18px] font-medium text-white shadow-[0_18px_30px_rgba(47,103,246,0.24)] transition hover:bg-[#255be7] disabled:cursor-not-allowed disabled:bg-[#9cb6f5]"
+            className="mt-auto flex h-[54px] items-center justify-center gap-3 rounded-2xl bg-[#2f67f6] px-5 text-[16px] font-medium text-white shadow-[0_18px_30px_rgba(47,103,246,0.24)] transition hover:bg-[#255be7] disabled:cursor-not-allowed disabled:bg-[#9cb6f5] lg:col-span-2 2xl:col-span-1 2xl:text-[18px]"
           >
             <Search className="h-5 w-5" />
             {weather.isFetching ? 'Consultando...' : 'Consultar'}
@@ -110,10 +110,10 @@ function WeatherDashboard({ data }: { data: WeatherData }) {
   const visibility = data.condicao.toLowerCase().includes('chuva') ? '7 km' : '10 km';
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.62fr)_minmax(320px,0.72fr)]">
+    <div className="space-y-4">
       <div className="min-w-0 space-y-4">
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.52fr)_minmax(320px,0.72fr)]">
-          <div className="relative overflow-hidden rounded-[26px] bg-[linear-gradient(135deg,#2b75d7_0%,#7fa8d8_58%,#5078a9_100%)] p-6 text-white shadow-[0_24px_50px_rgba(78,123,184,0.25)]">
+        <section className="grid gap-4 2xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.75fr)]">
+          <div className="relative overflow-hidden rounded-[26px] bg-[linear-gradient(135deg,#2b75d7_0%,#7fa8d8_58%,#5078a9_100%)] p-4 text-white shadow-[0_24px_50px_rgba(78,123,184,0.25)] sm:p-6">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_12%,rgba(255,255,255,0.18),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.08),rgba(0,0,0,0.16))]" />
             <div className="absolute inset-x-0 bottom-0 h-36 bg-[linear-gradient(180deg,rgba(31,62,98,0)_0%,rgba(24,46,75,0.22)_50%,rgba(22,39,63,0.34)_100%)]" />
             <div className="absolute bottom-0 left-0 right-0 h-28 bg-[radial-gradient(circle_at_20%_100%,#406d4c_0,#406d4c_22%,transparent_23%),radial-gradient(circle_at_40%_105%,#274860_0,#274860_24%,transparent_25%),radial-gradient(circle_at_63%_102%,#375e3f_0,#375e3f_20%,transparent_21%),radial-gradient(circle_at_84%_105%,#274860_0,#274860_20%,transparent_21%)] opacity-90" />
@@ -124,16 +124,16 @@ function WeatherDashboard({ data }: { data: WeatherData }) {
             </div>
 
             <div className="relative z-10">
-              <div className="grid gap-5 md:grid-cols-[1.05fr_0.95fr]">
+              <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
                 <div>
                   <h2 className="text-[28px] font-semibold tracking-[-0.03em]">{data.cidade}, {stateToCode(data.estado)}</h2>
                   <p className="mt-2 text-[14px] capitalize text-white/88">{currentDate}</p>
                   <p className="text-[14px] text-white/88">{currentTime}</p>
 
-                  <div className="mt-8 flex items-center gap-5">
-                    {data.icone ? <img src={data.icone} alt={data.condicao} className="h-28 w-28 drop-shadow-[0_14px_30px_rgba(0,0,0,0.18)]" /> : <CloudSun className="h-24 w-24" />}
+                  <div className="mt-8 flex items-center gap-3 sm:gap-5">
+                    {data.icone ? <img src={data.icone} alt={data.condicao} className="h-20 w-20 shrink-0 drop-shadow-[0_14px_30px_rgba(0,0,0,0.18)] sm:h-28 sm:w-28" /> : <CloudSun className="h-20 w-20 shrink-0 sm:h-24 sm:w-24" />}
                     <div>
-                      <div className="text-[64px] font-semibold leading-none">{data.temperatura}<span className="align-top text-[32px] font-medium">°C</span></div>
+                      <div className="whitespace-nowrap text-[44px] font-semibold leading-none sm:text-[64px]">{data.temperatura}<span className="align-top text-[24px] font-medium sm:text-[32px]">°C</span></div>
                       <div className="mt-2 text-[17px] font-medium text-white/95">{data.condicao}</div>
                       <div className="mt-1 text-[15px] text-white/82">Sensação térmica de {data.sensacaoTermica}°C</div>
                     </div>
@@ -152,52 +152,52 @@ function WeatherDashboard({ data }: { data: WeatherData }) {
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-[26px] bg-white shadow-[0_18px_44px_rgba(124,145,178,0.16)]">
-            <div className="h-[306px] p-0">
+          <div className="relative min-h-[340px] overflow-hidden rounded-[26px] bg-white shadow-[0_18px_44px_rgba(124,145,178,0.16)] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)]">
+            <div className="h-[340px] p-0 2xl:h-full 2xl:min-h-[340px]">
               <Map latitude={data.latitude} longitude={data.longitude} city={data.cidade} state={stateToCode(data.estado)} />
             </div>
-            <div className="absolute left-8 top-14 rounded-2xl bg-white px-5 py-4 text-[#202b42] shadow-[0_18px_36px_rgba(115,136,171,0.18)]">
-              <div className="text-[28px] font-semibold leading-none">{data.cidade} - {stateToCode(data.estado)}</div>
-              <div className="mt-1 text-sm text-[#6c7891]">Brasil</div>
+            <div className="absolute left-4 top-4 max-w-[calc(100%-2rem)] rounded-2xl bg-white px-4 py-3 text-[#202b42] shadow-[0_18px_36px_rgba(115,136,171,0.18)] dark:bg-[#172132] dark:text-[#f3f6fb] sm:left-6 sm:top-6 sm:px-5 sm:py-4">
+              <div className="truncate text-[20px] font-semibold leading-none sm:text-[24px]">{data.cidade} - {stateToCode(data.estado)}</div>
+              <div className="mt-1 text-sm text-[#6c7891] dark:text-[#aebbd0]">Brasil</div>
             </div>
             <a
               href={`https://www.google.com/maps/search/?api=1&query=${data.latitude},${data.longitude}`}
               target="_blank"
               rel="noreferrer"
-              className="absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-2xl bg-white px-5 py-3 text-[15px] font-medium text-[#2f67f6] shadow-[0_16px_34px_rgba(122,143,177,0.18)]"
+              className="absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-2xl bg-white px-4 py-3 text-[14px] font-medium text-[#2f67f6] shadow-[0_16px_34px_rgba(122,143,177,0.18)] dark:bg-[#172132] dark:text-[#83adff] sm:px-5 sm:text-[15px]"
             >
               Ver no mapa ampliado
             </a>
           </div>
         </section>
 
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.26fr)_minmax(320px,0.66fr)]">
-          <div className="rounded-[24px] bg-white p-5 shadow-[0_18px_44px_rgba(124,145,178,0.12)]">
-            <h3 className="text-[20px] font-semibold text-[#1b2740]">Previsão para hoje</h3>
+        <section className="grid gap-4 2xl:grid-cols-[minmax(0,1.26fr)_minmax(360px,0.66fr)]">
+          <div className="rounded-[24px] bg-white p-5 shadow-[0_18px_44px_rgba(124,145,178,0.12)] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)]">
+            <h3 className="text-[20px] font-semibold text-[#1b2740] dark:text-[#f6f8fc]">Previsão para hoje</h3>
             <div className="mt-5 grid grid-cols-2 gap-y-5 sm:grid-cols-4 xl:grid-cols-8">
               {hourly.map((item, index) => (
                 <div key={`${item.hora}-${index}`} className="text-center">
-                  <div className="text-[15px] text-[#59657f]">{index === 0 ? 'Agora' : item.hora}</div>
+                  <div className="text-[15px] text-[#59657f] dark:text-[#aebbd0]">{index === 0 ? 'Agora' : item.hora}</div>
                   {item.icone ? <img src={item.icone} alt={item.condicao} className="mx-auto mt-3 h-12 w-12" /> : <CloudSun className="mx-auto mt-3 h-9 w-9 text-[#f6be2f]" />}
-                  <div className="mt-2 text-[18px] font-semibold text-[#1d2941]">{item.temperatura}°</div>
-                  <div className="mt-1 text-[13px] text-[#6f7b94]">{chanceByCondition(item.condicao)}%</div>
+                  <div className="mt-2 text-[18px] font-semibold text-[#1d2941] dark:text-[#f3f6fb]">{item.temperatura}°</div>
+                  <div className="mt-1 text-[13px] text-[#6f7b94] dark:text-[#91a1ba]">{chanceByCondition(item.condicao)}%</div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="rounded-[24px] bg-white p-5 shadow-[0_18px_44px_rgba(124,145,178,0.12)]">
-            <h3 className="text-[20px] font-semibold text-[#1b2740]">Próximos dias</h3>
+          <div className="rounded-[24px] bg-white p-5 shadow-[0_18px_44px_rgba(124,145,178,0.12)] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)]">
+            <h3 className="text-[20px] font-semibold text-[#1b2740] dark:text-[#f6f8fc]">Próximos dias</h3>
             <div className="mt-5 space-y-5">
               {nextDays.map((day, index) => (
-                <div key={`${day.data}-${index}`} className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 text-[15px]">
-                  <div className="font-medium text-[#1f2a43]">{resolveDayLabel(index)}</div>
-                  <div className="text-[#7a859d]">{day.data}</div>
+                <div key={`${day.data}-${index}`} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 text-[14px] sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:text-[15px]">
+                  <div className="font-medium text-[#1f2a43] dark:text-[#eaf0f8]">{resolveDayLabel(index)}</div>
+                  <div className="hidden text-[#7a859d] dark:text-[#9aa9c0] sm:block">{day.data}</div>
                   {day.icone ? <img src={day.icone} alt={day.condicao} className="h-9 w-9" /> : <CloudSun className="h-7 w-7 text-[#f6be2f]" />}
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 sm:gap-4">
                     <span className="font-medium text-[#ff4d4f]">{day.maxima}°</span>
                     <span className="font-medium text-[#2f67f6]">{day.minima}°</span>
-                    <span className="text-[#6f7b94]">{chanceByCondition(day.condicao)}%</span>
+                    <span className="text-[#6f7b94] dark:text-[#91a1ba]">{chanceByCondition(day.condicao)}%</span>
                   </div>
                 </div>
               ))}
@@ -205,22 +205,22 @@ function WeatherDashboard({ data }: { data: WeatherData }) {
           </div>
         </section>
 
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.26fr)_minmax(320px,0.66fr)]">
-          <div className="rounded-[24px] bg-white p-5 shadow-[0_18px_44px_rgba(124,145,178,0.12)]">
-            <h3 className="text-[20px] font-semibold text-[#1b2740]">Gráfico de temperatura</h3>
+        <section className="grid gap-4 2xl:grid-cols-[minmax(0,1.26fr)_minmax(360px,0.66fr)]">
+          <div className="rounded-[24px] bg-white p-5 shadow-[0_18px_44px_rgba(124,145,178,0.12)] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)]">
+            <h3 className="text-[20px] font-semibold text-[#1b2740] dark:text-[#f6f8fc]">Gráfico de temperatura</h3>
             <div className="mt-4">
               <TemperatureChart hourlyData={data.temperaturasPorHora} />
             </div>
           </div>
 
-          <div className="rounded-[24px] bg-white p-5 shadow-[0_18px_44px_rgba(124,145,178,0.12)]">
-            <h3 className="text-[20px] font-semibold text-[#1b2740]">Alertas meteorológicos</h3>
-            <div className="mt-5 rounded-[20px] bg-[#fff7e8] p-5">
+          <div className="rounded-[24px] bg-white p-5 shadow-[0_18px_44px_rgba(124,145,178,0.12)] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)]">
+            <h3 className="text-[20px] font-semibold text-[#1b2740] dark:text-[#f6f8fc]">Alertas meteorológicos</h3>
+            <div className="mt-5 rounded-[20px] bg-[#fff7e8] p-5 dark:bg-[#332918]">
               <div className="flex items-start gap-3">
                 <BellRing className="mt-0.5 h-6 w-6 text-[#f5a623]" />
                 <div>
                   <div className="font-semibold text-[#d98300]">{data.alertas.length ? 'Atenção para mudança no clima' : 'Nenhum alerta meteorológico'}</div>
-                  <p className="mt-2 text-[15px] leading-6 text-[#6f6250]">
+                  <p className="mt-2 text-[15px] leading-6 text-[#6f6250] dark:text-[#d3c3a5]">
                     {data.alertas.length ? data.alertas.join(' ') : 'No momento não existem alertas ativos para essa localidade. Continue acompanhando as atualizações ao longo do dia.'}
                   </p>
                   <button type="button" className="mt-4 text-[15px] font-medium text-[#2f67f6]">Ver todos os alertas</button>
@@ -236,10 +236,10 @@ function WeatherDashboard({ data }: { data: WeatherData }) {
 
 function WeatherError({ error }: { error: unknown }) {
   return (
-    <div className="rounded-[24px] border border-[#f0d0d0] bg-white p-10 text-center shadow-[0_16px_40px_rgba(134,154,185,0.12)]">
+    <div className="rounded-[24px] border border-[#f0d0d0] bg-white p-10 text-center shadow-[0_16px_40px_rgba(134,154,185,0.12)] dark:border-[#60343d] dark:bg-[#121a29]">
       <AlertCircle className="mx-auto h-10 w-10 text-red-500" />
-      <div className="mt-4 text-xl font-semibold text-[#1b2740]">Erro na consulta</div>
-      <p className="mx-auto mt-3 max-w-lg text-[15px] text-[#6e7890]">{error instanceof Error ? error.message : 'Não foi possível obter dados meteorológicos.'}</p>
+      <div className="mt-4 text-xl font-semibold text-[#1b2740] dark:text-[#f6f8fc]">Erro na consulta</div>
+      <p className="mx-auto mt-3 max-w-lg text-[15px] text-[#6e7890] dark:text-[#aebbd0]">{error instanceof Error ? error.message : 'Não foi possível obter dados meteorológicos.'}</p>
     </div>
   );
 }
@@ -247,15 +247,15 @@ function WeatherError({ error }: { error: unknown }) {
 function WeatherSkeleton() {
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.62fr)_minmax(320px,0.72fr)]">
+      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.75fr)]">
         <Skeleton className="h-[306px] rounded-[26px]" />
         <Skeleton className="h-[306px] rounded-[26px]" />
       </div>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.26fr)_minmax(320px,0.66fr)]">
+      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1.26fr)_minmax(360px,0.66fr)]">
         <Skeleton className="h-[190px] rounded-[24px]" />
         <Skeleton className="h-[190px] rounded-[24px]" />
       </div>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.26fr)_minmax(320px,0.66fr)]">
+      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1.26fr)_minmax(360px,0.66fr)]">
         <Skeleton className="h-[320px] rounded-[24px]" />
         <Skeleton className="h-[220px] rounded-[24px]" />
       </div>

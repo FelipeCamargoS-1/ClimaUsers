@@ -39,19 +39,16 @@ export function Navbar({ onMenuToggle, theme, onThemeToggle }: { onMenuToggle: (
   const userInitials = createInitials(userName);
 
   return (
-    <header className="sticky top-0 z-20 flex h-[92px] items-center justify-between border-b border-[#ebeff6] bg-white px-8 dark:border-[#202d42] dark:bg-[#101827]">
-      <div className="flex items-center gap-6">
-        <button onClick={onMenuToggle} className="rounded-2xl p-2 text-[#6c3df1] lg:hidden">
-          <Menu className="h-7 w-7" />
+    <header className="sticky top-0 z-20 flex h-[72px] shrink-0 items-center justify-between border-b border-[#ebeff6] bg-white px-3 dark:border-[#202d42] dark:bg-[#101827] sm:h-[82px] sm:px-6 xl:h-[92px] xl:px-8">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-4">
+        <button onClick={onMenuToggle} aria-label="Abrir menu" className="shrink-0 rounded-2xl p-2 text-[#6c3df1] transition hover:bg-[#f3ecff] dark:hover:bg-[#1f2740]">
+          <Menu className="h-6 w-6 sm:h-7 sm:w-7" />
         </button>
-        <button onClick={onMenuToggle} className="hidden rounded-2xl p-2 text-[#6c3df1] lg:block">
-          <Menu className="h-8 w-8" />
-        </button>
-        <h1 className="text-[26px] font-semibold tracking-[-0.03em] text-[#181d27] dark:text-white">{title}</h1>
+        <h1 className="truncate text-[20px] font-semibold tracking-[-0.03em] text-[#181d27] dark:text-white sm:text-[24px] xl:text-[26px]">{title}</h1>
       </div>
 
-      <div className="flex items-center gap-7">
-        <button onClick={onThemeToggle} className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#dde5f2] bg-white text-[#5e6a84] shadow-sm dark:border-[#263047] dark:bg-[#131b2b] dark:text-[#cbd5e1]">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-4 xl:gap-7">
+        <button onClick={onThemeToggle} className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#dde5f2] bg-white text-[#5e6a84] shadow-sm dark:border-[#263047] dark:bg-[#131b2b] dark:text-[#cbd5e1] sm:h-11 sm:w-11">
           {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </button>
         <div className="relative" ref={panelRef}>
@@ -65,7 +62,7 @@ export function Navbar({ onMenuToggle, theme, onThemeToggle }: { onMenuToggle: (
           </button>
 
           {open ? (
-            <div className="absolute right-0 top-12 z-30 w-[380px] rounded-[22px] border border-[#e8edf5] bg-white p-4 shadow-[0_22px_60px_rgba(92,113,146,0.18)] dark:border-[#1c2436] dark:bg-[#131b2b]">
+            <div className="fixed inset-x-3 top-[68px] z-30 max-h-[calc(100dvh-80px)] overflow-y-auto rounded-[22px] border border-[#e8edf5] bg-white p-4 shadow-[0_22px_60px_rgba(92,113,146,0.18)] dark:border-[#1c2436] dark:bg-[#131b2b] sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-[min(380px,calc(100vw-2rem))]">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-[17px] font-semibold text-[#181d27] dark:text-white">Notificações</div>
@@ -124,18 +121,18 @@ export function Navbar({ onMenuToggle, theme, onThemeToggle }: { onMenuToggle: (
 
         <div className="relative" ref={userMenuRef}>
           <button onClick={() => setUserMenuOpen((current) => !current)} className="flex items-center gap-4 rounded-[18px] px-2 py-2 transition hover:bg-[#f7f9fc] dark:hover:bg-[#172132]">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(180deg,#f1c8a0_0%,#c97c4e_100%)] text-sm font-semibold text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[linear-gradient(180deg,#f1c8a0_0%,#c97c4e_100%)] text-sm font-semibold text-white sm:h-12 sm:w-12">
               {userInitials}
             </div>
             <div className="hidden text-left sm:block">
               <div className="text-[15px] font-semibold text-[#181d27] dark:text-[#f5f7fb]">{userName}</div>
               <div className="mt-0.5 max-w-[220px] truncate text-[13px] text-[#73809a] dark:text-[#9eb0c8]">{userEmail}</div>
             </div>
-            <ChevronDown className={`h-5 w-5 text-[#5d6880] transition dark:text-[#c7d4e9] ${userMenuOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`hidden h-5 w-5 text-[#5d6880] transition dark:text-[#c7d4e9] sm:block ${userMenuOpen ? 'rotate-180' : ''}`} />
           </button>
 
           {userMenuOpen ? (
-            <div className="absolute right-0 top-16 z-30 w-[280px] rounded-[22px] border border-[#e8edf5] bg-white p-3 shadow-[0_22px_60px_rgba(92,113,146,0.18)] dark:border-[#243149] dark:bg-[#131d2d]">
+            <div className="absolute right-0 top-14 z-30 w-[min(280px,calc(100vw-1.5rem))] rounded-[22px] border border-[#e8edf5] bg-white p-3 shadow-[0_22px_60px_rgba(92,113,146,0.18)] dark:border-[#243149] dark:bg-[#131d2d] sm:top-16">
               <Link to="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 rounded-2xl px-4 py-3 text-[14px] font-medium text-[#1f2738] transition hover:bg-[#f7f9fc] dark:text-[#edf2fa] dark:hover:bg-[#172132]">
                 <UserCircle2 className="h-4 w-4" />
                 Meu perfil

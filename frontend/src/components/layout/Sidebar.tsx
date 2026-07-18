@@ -15,14 +15,14 @@ export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
 
   return (
     <>
-      {isOpen && <div onClick={onClose} className="fixed inset-0 z-30 bg-slate-900/20 backdrop-blur-sm lg:hidden" />}
-      <aside className={`fixed bottom-0 left-0 top-0 z-40 flex w-[238px] flex-col border-r border-[#e8edf5] bg-white transition-transform dark:border-[#1c2436] dark:bg-[#101725] lg:static lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      {isOpen && <div onClick={onClose} className="fixed inset-0 z-30 bg-slate-900/40 backdrop-blur-sm" />}
+      <aside className={`fixed bottom-0 left-0 top-0 z-40 flex w-[min(86vw,280px)] flex-col border-r border-[#e8edf5] bg-white shadow-2xl transition-transform duration-300 dark:border-[#1c2436] dark:bg-[#101725] ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between px-7 pb-8 pt-9">
           <div className="flex items-center gap-3">
             <CloudSun className="h-8 w-8 text-[#6c3df1]" />
             <div className="text-[17px] font-semibold tracking-[-0.02em] text-[#3420a9] dark:text-[#9db4ff]">Weather<span className="text-[#2f2d42] dark:text-white">Users</span></div>
           </div>
-          <button className="rounded-xl p-2 text-slate-500 lg:hidden" onClick={onClose}>
+          <button className="rounded-xl p-2 text-slate-500" onClick={onClose}>
             <X className="h-5 w-5" />
           </button>
         </div>

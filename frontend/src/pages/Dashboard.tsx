@@ -18,11 +18,11 @@ export function Dashboard() {
   return (
     <div className="space-y-7">
       <section>
-        <h1 className="text-[34px] font-semibold tracking-[-0.03em] text-[#181d27] dark:text-[#f6f8fc]">Bem-vindo de volta, {firstName(user?.name) ?? 'usuário'}! <span className="text-[30px]">👋</span></h1>
+        <h1 className="text-[27px] font-semibold tracking-[-0.03em] text-[#181d27] dark:text-[#f6f8fc] sm:text-[30px] xl:text-[34px]">Bem-vindo de volta, {firstName(user?.name) ?? 'usuário'}! <span className="text-[26px] sm:text-[30px]">👋</span></h1>
         <p className="mt-3 text-[15px] text-[#5e677b] dark:text-[#a9b5c9]">Aqui está um resumo geral da sua aplicação.</p>
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
         <MetricCard
           icon={Users}
           iconClassName="bg-[linear-gradient(180deg,#f2e9ff_0%,#f8f4ff_100%)] text-[#6c3df1] dark:bg-[linear-gradient(180deg,#332854_0%,#282340_100%)] dark:text-[#c2afff]"
@@ -56,15 +56,15 @@ export function Dashboard() {
         />
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.58fr)_minmax(360px,0.82fr)]">
+      <section className="grid gap-5 2xl:grid-cols-[minmax(0,1.58fr)_minmax(360px,0.82fr)]">
         <div className="rounded-[26px] border border-[#e8edf5] bg-white shadow-[0_18px_45px_rgba(120,138,165,0.08)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)]">
           <div className="flex items-center justify-between border-b border-[#edf1f7] px-6 py-5 dark:border-[#26334a]">
             <h2 className="text-[18px] font-semibold text-[#1c2333] dark:text-[#f6f8fc]">Usuários recentes</h2>
             <Link to="/users" className="text-[15px] font-medium text-[#6c3df1]">Ver todos</Link>
           </div>
 
-          <div className="overflow-hidden">
-            <table className="w-full">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[720px]">
               <thead className="border-b border-[#edf1f7] bg-white text-left dark:border-[#26334a] dark:bg-[#151f30]">
                 <tr className="text-[15px] font-medium text-[#4b5567] dark:text-[#aebbd0]">
                   <th className="px-6 py-4">Nome</th>
@@ -111,26 +111,26 @@ export function Dashboard() {
 
         <div className="space-y-5">
           <div className="rounded-[26px] border border-[#e8edf5] bg-white p-5 shadow-[0_18px_45px_rgba(120,138,165,0.08)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-[18px] font-semibold text-[#1c2333] dark:text-[#f6f8fc]">
-                <CloudSun className="h-5 w-5 text-[#444b5d] dark:text-[#b7c3d8]" />
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 whitespace-nowrap text-[18px] font-semibold text-[#1c2333] dark:text-[#f6f8fc]">
+                <CloudSun className="h-5 w-5 shrink-0 text-[#444b5d] dark:text-[#b7c3d8]" />
                 Clima recente
               </div>
-              <Link to="/weather" className="text-[15px] font-medium text-[#6c3df1]">Ver previsão completa</Link>
+              <Link to="/weather" className="whitespace-nowrap text-[14px] font-medium text-[#6c3df1] dark:text-[#a98cff]">Ver previsão completa</Link>
             </div>
 
-            <div className="mt-5 rounded-[22px] bg-[linear-gradient(180deg,#eaf4ff_0%,#f6fbff_100%)] p-6 dark:bg-[linear-gradient(180deg,#172a42_0%,#162337_100%)]">
-              <div className="grid items-center gap-6 md:grid-cols-[1fr_auto]">
-                <div className="flex items-center gap-5">
-                  {currentWeather?.icone ? <img src={currentWeather.icone} alt={currentWeather.condicao} className="h-24 w-24" /> : <CloudSun className="h-20 w-20 text-[#ffbf2f]" />}
-                  <div>
-                    <div className="text-[46px] font-semibold leading-none text-[#171d29] dark:text-[#f7f9fc]">{currentWeather?.temperatura ?? '--'}°C</div>
+            <div className="mt-5 rounded-[22px] bg-[linear-gradient(180deg,#eaf4ff_0%,#f6fbff_100%)] p-5 dark:bg-[linear-gradient(180deg,#172a42_0%,#162337_100%)]">
+              <div className="space-y-6">
+                <div className="flex min-w-0 items-center gap-4">
+                  {currentWeather?.icone ? <img src={currentWeather.icone} alt={currentWeather.condicao} className="h-20 w-20 shrink-0 sm:h-24 sm:w-24" /> : <CloudSun className="h-20 w-20 shrink-0 text-[#ffbf2f]" />}
+                  <div className="min-w-0">
+                    <div className="whitespace-nowrap text-[38px] font-semibold leading-none text-[#171d29] dark:text-[#f7f9fc] sm:text-[46px]">{currentWeather?.temperatura ?? '--'}°C</div>
                     <div className="mt-3 text-[15px] font-semibold text-[#1c2333] dark:text-[#eaf0f8]">Curitiba, PR</div>
-                    <div className="mt-1 text-[15px] text-[#505a70] dark:text-[#aebbd0]">{currentWeather?.condicao ?? 'Carregando'}</div>
+                    <div className="mt-1 truncate text-[15px] text-[#505a70] dark:text-[#aebbd0]">{currentWeather?.condicao ?? 'Carregando'}</div>
                   </div>
                 </div>
 
-                <div className="space-y-4 text-[15px] text-[#2a3347] dark:text-[#c7d1e1]">
+                <div className="space-y-3 border-t border-[#d7e5f4] pt-5 text-[14px] text-[#2a3347] dark:border-[#2a405a] dark:text-[#c7d1e1]">
                   <InfoRow label="Sensação térmica" value={currentWeather ? `${currentWeather.sensacaoTermica}°C` : '--'} />
                   <InfoRow label="Umidade" value={currentWeather ? `${currentWeather.umidade}%` : '--'} />
                   <InfoRow label="Vento" value={currentWeather ? `${currentWeather.vento} km/h` : '--'} />
@@ -144,24 +144,24 @@ export function Dashboard() {
           <div className="rounded-[26px] border border-[#e8edf5] bg-white p-5 shadow-[0_18px_45px_rgba(120,138,165,0.08)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)]">
             <h2 className="text-[18px] font-semibold text-[#1c2333] dark:text-[#f6f8fc]">Ações rápidas</h2>
 
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <Link to="/users" className="flex items-center gap-4 rounded-[20px] bg-[linear-gradient(135deg,#f3e9ff_0%,#fbf7ff_100%)] p-5 dark:bg-[linear-gradient(135deg,#272044_0%,#1d2438_100%)]">
-                <div className="flex h-16 w-16 items-center justify-center rounded-[18px] bg-[#e9dcff] text-[#6c3df1] dark:bg-[#352b58] dark:text-[#c1adff]">
+            <div className="mt-5 grid gap-4">
+              <Link to="/users" className="flex min-w-0 items-center gap-4 rounded-[20px] bg-[linear-gradient(135deg,#f3e9ff_0%,#fbf7ff_100%)] p-4 dark:bg-[linear-gradient(135deg,#272044_0%,#1d2438_100%)]">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] bg-[#e9dcff] text-[#6c3df1] dark:bg-[#352b58] dark:text-[#c1adff]">
                   <UserPlus className="h-8 w-8" />
                 </div>
-                <div>
-                  <div className="text-[16px] font-semibold text-[#6c3df1]">Novo usuário</div>
-                  <div className="mt-1 text-[15px] text-[#505a70] dark:text-[#aebbd0]">Cadastrar novo usuário</div>
+                <div className="min-w-0">
+                  <div className="whitespace-nowrap text-[16px] font-semibold text-[#6c3df1]">Novo usuário</div>
+                  <div className="mt-1 text-[14px] text-[#505a70] dark:text-[#aebbd0]">Cadastrar novo usuário</div>
                 </div>
               </Link>
 
-              <Link to="/weather" className="flex items-center gap-4 rounded-[20px] bg-[linear-gradient(135deg,#e9f2ff_0%,#f5f9ff_100%)] p-5 dark:bg-[linear-gradient(135deg,#182d49_0%,#1a2538_100%)]">
-                <div className="flex h-16 w-16 items-center justify-center rounded-[18px] bg-[#d9e9ff] text-[#246bff] dark:bg-[#213a5d] dark:text-[#75a7ff]">
+              <Link to="/weather" className="flex min-w-0 items-center gap-4 rounded-[20px] bg-[linear-gradient(135deg,#e9f2ff_0%,#f5f9ff_100%)] p-4 dark:bg-[linear-gradient(135deg,#182d49_0%,#1a2538_100%)]">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] bg-[#d9e9ff] text-[#246bff] dark:bg-[#213a5d] dark:text-[#75a7ff]">
                   <CloudSun className="h-8 w-8" />
                 </div>
-                <div>
-                  <div className="text-[16px] font-semibold text-[#246bff]">Consultar clima</div>
-                  <div className="mt-1 text-[15px] text-[#505a70] dark:text-[#aebbd0]">Ver clima de uma cidade</div>
+                <div className="min-w-0">
+                  <div className="whitespace-nowrap text-[16px] font-semibold text-[#246bff]">Consultar clima</div>
+                  <div className="mt-1 text-[14px] text-[#505a70] dark:text-[#aebbd0]">Ver clima de uma cidade</div>
                 </div>
               </Link>
             </div>
@@ -194,10 +194,10 @@ function MetricCard({
   valueClassName?: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-[#e8edf5] bg-white p-6 shadow-[0_18px_45px_rgba(120,138,165,0.08)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)]">
+    <div className="rounded-[24px] border border-[#e8edf5] bg-white p-5 shadow-[0_18px_45px_rgba(120,138,165,0.08)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)] sm:p-6">
       <div className="flex items-center gap-5">
-        <div className={`flex h-20 w-20 items-center justify-center rounded-full ${iconClassName}`}>
-          <Icon className="h-9 w-9" />
+        <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full sm:h-20 sm:w-20 ${iconClassName}`}>
+          <Icon className="h-8 w-8 sm:h-9 sm:w-9" />
         </div>
         <div>
           <div className="text-[15px] text-[#4f586c] dark:text-[#aebbd0]">{label}</div>
@@ -212,8 +212,8 @@ function MetricCard({
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-6">
-      <span className="text-[#424c61] dark:text-[#b4c0d3]">{label}</span>
-      <span className="font-semibold text-[#171d29] dark:text-[#f3f6fb]">{value}</span>
+      <span className="whitespace-nowrap text-[#424c61] dark:text-[#b4c0d3]">{label}</span>
+      <span className="whitespace-nowrap font-semibold text-[#171d29] dark:text-[#f3f6fb]">{value}</span>
     </div>
   );
 }

@@ -16,12 +16,12 @@ export function Settings() {
   return (
     <div className="space-y-7">
       <section>
-        <h1 className="text-[34px] font-semibold tracking-[-0.03em] text-[#181d27] dark:text-[#f5f7fb]">Configurações</h1>
+        <h1 className="text-[28px] font-semibold tracking-[-0.03em] text-[#181d27] dark:text-[#f5f7fb] sm:text-[34px]">Configurações</h1>
         <p className="mt-3 text-[15px] text-[#5e677b] dark:text-[#aab6ca]">Ajustes básicos da conta, preferências e notificações do sistema.</p>
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-        <div className="rounded-[26px] border border-[#e8edf5] bg-white p-6 shadow-[0_18px_45px_rgba(120,138,165,0.08)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)]">
+        <div className="rounded-[26px] border border-[#e8edf5] bg-white p-4 shadow-[0_18px_45px_rgba(120,138,165,0.08)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)] sm:p-6">
           <div className="flex items-center gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f3ecff] text-[#6c3df1]">
               <UserCircle className="h-8 w-8" />
@@ -41,7 +41,7 @@ export function Settings() {
         </div>
 
         <div className="space-y-5">
-          <div className="rounded-[26px] border border-[#e8edf5] bg-white p-6 shadow-[0_18px_45px_rgba(120,138,165,0.08)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)]">
+          <div className="rounded-[26px] border border-[#e8edf5] bg-white p-4 shadow-[0_18px_45px_rgba(120,138,165,0.08)] dark:border-[#243149] dark:bg-[#121a29] dark:shadow-[0_20px_60px_rgba(2,8,20,0.42)] sm:p-6">
             <div className="flex items-center gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#eef4ff] text-[#246bff]">
                 <Bell className="h-7 w-7" />

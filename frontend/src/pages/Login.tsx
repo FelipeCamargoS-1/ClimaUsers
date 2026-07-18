@@ -36,7 +36,7 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#e3e9ff_0,#f5f7fc_42%,#eef3fb_100%)] px-6 py-10 text-[#1b2233] dark:bg-[radial-gradient(circle_at_top_left,#1e2440_0,#0f1424_42%,#0b101b_100%)] dark:text-white">
+    <div className="min-h-dvh bg-[radial-gradient(circle_at_top_left,#e3e9ff_0,#f5f7fc_42%,#eef3fb_100%)] px-3 py-4 text-[#1b2233] dark:bg-[radial-gradient(circle_at_top_left,#1e2440_0,#0f1424_42%,#0b101b_100%)] dark:text-white sm:px-6 sm:py-10">
       <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl overflow-hidden rounded-[34px] border border-white/60 bg-white/90 shadow-[0_30px_90px_rgba(89,110,150,0.18)] backdrop-blur-xl dark:border-white/10 dark:bg-[#101725]/90">
         <section className="hidden w-[44%] flex-col justify-between bg-[linear-gradient(155deg,#6c3df1_0%,#4f7cff_54%,#78b6ff_100%)] p-10 text-white lg:flex">
           <div>

@@ -2,10 +2,13 @@
 import { CategoryScale, Chart as ChartJS, Filler, Legend, LinearScale, LineElement, PointElement, Title, Tooltip } from 'chart.js';
 import type { ChartData, ChartOptions } from 'chart.js';
 import type { HourlyWeather } from '../../types';
+import { useTheme } from '../../context/ThemeContext';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend);
 
 export function TemperatureChart({ hourlyData }: { hourlyData: HourlyWeather[] }) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const filteredData = hourlyData.filter((_, index) => index % 2 === 0);
   const highlightIndex = Math.min(6, Math.max(filteredData.length - 1, 0));
   const data: ChartData<'line'> = {
@@ -19,7 +22,7 @@ export function TemperatureChart({ hourlyData }: { hourlyData: HourlyWeather[] }
       pointRadius: filteredData.map((_, index) => (index === highlightIndex ? 5 : 3)),
       pointHoverRadius: filteredData.map((_, index) => (index === highlightIndex ? 6 : 4)),
       pointBorderWidth: 2,
-      pointBackgroundColor: filteredData.map((_, index) => (index === highlightIndex ? '#2f67f6' : '#ffffff')),
+      pointBackgroundColor: filteredData.map((_, index) => (index === highlightIndex ? '#2f67f6' : isDark ? '#121a29' : '#ffffff')),
       pointBorderColor: '#2f67f6',
       tension: 0.38,
     }],
@@ -33,13 +36,13 @@ export function TemperatureChart({ hourlyData }: { hourlyData: HourlyWeather[] }
         display: true,
         position: 'top',
         align: 'start',
-        labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true, pointStyle: 'line', color: '#66738f' },
+        labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true, pointStyle: 'line', color: isDark ? '#aebbd0' : '#66738f' },
       },
       tooltip: {
-        backgroundColor: '#ffffff',
-        titleColor: '#1f2c46',
+        backgroundColor: isDark ? '#172132' : '#ffffff',
+        titleColor: isDark ? '#f3f6fb' : '#1f2c46',
         bodyColor: '#2f67f6',
-        borderColor: '#d7e3ff',
+        borderColor: isDark ? '#30405a' : '#d7e3ff',
         borderWidth: 1,
         displayColors: false,
         titleAlign: 'center',
@@ -54,12 +57,12 @@ export function TemperatureChart({ hourlyData }: { hourlyData: HourlyWeather[] }
     scales: {
       x: {
         grid: { display: false },
-        ticks: { color: '#7f8ba3' },
+        ticks: { color: isDark ? '#91a1ba' : '#7f8ba3' },
       },
       y: {
         border: { display: false },
-        grid: { color: 'rgba(213, 223, 238, 0.9)' },
-        ticks: { color: '#7f8ba3' },
+        grid: { color: isDark ? 'rgba(66, 83, 110, 0.55)' : 'rgba(213, 223, 238, 0.9)' },
+        ticks: { color: isDark ? '#91a1ba' : '#7f8ba3' },
       },
     },
   };
