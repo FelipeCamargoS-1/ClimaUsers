@@ -18,10 +18,15 @@
 \else
   \set import_force false
 \endif
+\if :{?import_csv_format}
+\else
+  \set import_csv_format auto
+\endif
 
 SELECT :'import_mode' IN ('append', 'recreate') AS valid_mode,
        :'allow_production' IN ('true', 'false') AS valid_allow,
        :'import_force' IN ('true', 'false') AS valid_force,
+       :'import_csv_format' IN ('auto', 'standard2', 'legacy4') AS valid_csv_format,
        :'import_limit' ~ '^[0-9]+$' AS valid_limit
 \gset
 \if :valid_mode
@@ -37,6 +42,11 @@ SELECT :'import_mode' IN ('append', 'recreate') AS valid_mode,
 \if :valid_force
 \else
   \echo 'ERRO: import_force deve ser true ou false.'
+  \quit 2
+\endif
+\if :valid_csv_format
+\else
+  \echo 'ERRO: import_csv_format deve ser auto, standard2 ou legacy4.'
   \quit 2
 \endif
 \if :valid_limit
@@ -150,8 +160,19 @@ SELECT EXISTS (
 
   \echo 'Carregando TGZ diretamente em staging com COPY FROM PROGRAM...'
   CREATE TEMP TABLE users_archive_format (format text NOT NULL);
-  COPY users_archive_format (format)
-  FROM PROGRAM '/usr/local/bin/climausers-users-archive --format';
+  SELECT :'import_csv_format' = 'standard2' AS prepare_standard2,
+         :'import_csv_format' = 'legacy4' AS prepare_legacy4
+  \gset
+  \if :prepare_standard2
+    COPY users_archive_format (format)
+    FROM PROGRAM '/usr/local/bin/climausers-users-archive --prepare-fast-standard2';
+  \elif :prepare_legacy4
+    COPY users_archive_format (format)
+    FROM PROGRAM '/usr/local/bin/climausers-users-archive --prepare-fast-legacy4';
+  \else
+    COPY users_archive_format (format)
+    FROM PROGRAM '/usr/local/bin/climausers-users-archive --format';
+  \endif
   SELECT format = 'standard2' AS is_standard2 FROM users_archive_format \gset
   \if :is_standard2
     COPY public.users_import_stage (name, email)
@@ -166,8 +187,22 @@ SELECT EXISTS (
      SET copy_finished_at = clock_timestamp(),
          loaded = (SELECT count(*) FROM public.users_import_stage);
 
+  SELECT NOT EXISTS (SELECT 1 FROM public.users LIMIT 1)
+         AND to_regclass('public.users_email_key') IS NOT NULL AS fast_initial_load
+  \gset
+
   BEGIN;
   SET LOCAL synchronous_commit = off;
+  \if :fast_initial_load
+    LOCK TABLE public.users IN ACCESS EXCLUSIVE MODE;
+    SELECT NOT EXISTS (SELECT 1 FROM public.users LIMIT 1) AS users_still_empty \gset
+    \if :users_still_empty
+      \echo 'Carga inicial otimizada: indice unico sera reconstruido em lote.'
+    \else
+      \echo 'ERRO: public.users deixou de estar vazia antes do bloqueio.'
+      \quit 5
+    \endif
+  \endif
   UPDATE users_import_stats SET normalize_started_at = clock_timestamp();
 
   CREATE UNLOGGED TABLE public.users_import_normalized AS
@@ -245,18 +280,31 @@ SELECT EXISTS (
     ) q;
 
   UPDATE users_import_stats SET insert_started_at = clock_timestamp();
-  WITH inserted AS (
-    INSERT INTO public.users (id, name, email, created_at, updated_at)
-    SELECT gen_random_uuid(), clean_name, clean_email, now(), now()
-      FROM public.users_import_ready r
-     WHERE (:import_limit::bigint = 0 OR r.selection_order <= :import_limit::bigint)
-       AND NOT EXISTS (
-         SELECT 1 FROM public.users u WHERE lower(btrim(u.email)) = r.clean_email
-       )
-    ON CONFLICT (email) DO NOTHING
-    RETURNING 1
-  )
-  UPDATE users_import_stats SET inserted = (SELECT count(*) FROM inserted);
+  \if :fast_initial_load
+    DROP INDEX public.users_email_key;
+    WITH inserted AS (
+      INSERT INTO public.users (id, name, email, created_at, updated_at)
+      SELECT gen_random_uuid(), clean_name, clean_email, now(), now()
+        FROM public.users_import_ready r
+       WHERE :import_limit::bigint = 0 OR r.selection_order <= :import_limit::bigint
+      RETURNING 1
+    )
+    UPDATE users_import_stats SET inserted = (SELECT count(*) FROM inserted);
+    CREATE UNIQUE INDEX users_email_key ON public.users (email);
+  \else
+    WITH inserted AS (
+      INSERT INTO public.users (id, name, email, created_at, updated_at)
+      SELECT gen_random_uuid(), clean_name, clean_email, now(), now()
+        FROM public.users_import_ready r
+       WHERE (:import_limit::bigint = 0 OR r.selection_order <= :import_limit::bigint)
+         AND NOT EXISTS (
+           SELECT 1 FROM public.users u WHERE lower(btrim(u.email)) = r.clean_email
+         )
+      ON CONFLICT (email) DO NOTHING
+      RETURNING 1
+    )
+    UPDATE users_import_stats SET inserted = (SELECT count(*) FROM inserted);
+  \endif
   UPDATE users_import_stats SET insert_finished_at = clock_timestamp();
 
   INSERT INTO public.users_import_history

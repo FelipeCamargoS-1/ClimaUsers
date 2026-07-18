@@ -31,9 +31,11 @@ PostgreSQL. Ele apenas valida o arquivo fixo e transmite o unico CSV; nao analis
 nem transforma registros. Rejeita TGZ invalido, zero ou multiplos CSVs, caminho
 absoluto, `../`, barra invertida e cabecalho diferente. Como nenhum nome vindo do
 arquivo e concatenado em um comando shell, nao existe interpolacao vulneravel.
-Para evitar passagens repetidas por 10 milhoes de linhas, a validacao grava somente
-o nome seguro do membro CSV em `/tmp`; `/data` permanece somente leitura. O hash
-nao repete a validacao estrutural e o `COPY` descompacta apenas o membro ja validado.
+Para evitar passagens repetidas por 10 milhoes de linhas, o formato conhecido usa
+o membro fixo `users.csv` e valida listagem, quantidade e caminhos em paralelo com
+o `COPY`. O cabeçalho e validado no proprio fluxo. Qualquer falha faz o programa
+retornar erro e o PostgreSQL reverte integralmente o COPY. `/data` permanece RO.
+O modo `auto` conserva a validacao sequencial generica para arquivos desconhecidos.
 
 A imagem `docker/postgres/Dockerfile` deriva de `postgres:16-alpine` e instala GNU
 tar e coreutils. `COPY FROM PROGRAM` roda no servidor sob o usuario do PostgreSQL;
@@ -62,11 +64,10 @@ porque podem ser recriadas do TGZ. A staging bruta nao recebe chave primaria nem
 indice; `import_order` e uma identity sem indice, usada para manter a primeira
 ocorrencia. Somente a tabela deduplicada recebe indice temporario de email.
 
-A estrategia materializada foi escolhida em vez de repetir CTEs: trim, replace,
-lower, validacao e a ordenacao de deduplicacao sao feitos uma vez. Isso consome
-mais disco temporario, mas evita recalcular essas operacoes sobre 10 milhoes de
-linhas. `DISTINCT ON (clean_email) ORDER BY clean_email, import_order` conserva a
-primeira ocorrencia valida.
+A staging normalizada permanece materializada porque o benchmark mostrou que
+recalcular `TRIM/LOWER/REPLACE` durante contagem e deduplicacao aumentou essa fase
+de 19,6 s para 60,7 s. `DISTINCT ON` reutiliza os valores limpos e a ordenacao
+`ORDER BY clean_email, import_order` conserva a primeira ocorrencia valida.
 
 O processo tem fronteiras deliberadas:
 
@@ -121,10 +122,16 @@ docker compose run --rm \
   database-init
 ```
 
-Preservar a constraint unica durante `recreate` custa tempo, mas evita uma janela
-sem a garantia esperada pelo Prisma e permite rollback simples. Em uma base nova
-dedicada a benchmark, criar o indice depois pode ser mais rapido, mas essa opcao
-nao foi automatizada por ser destrutiva e arriscada em producao.
+Preservar o indice unico durante cargas incrementais garante a integridade esperada
+pelo Prisma. Em uma base nova, reconstruir esse indice em lote e mais rapido desde
+que a operacao seja protegida por bloqueio, nova verificacao e transacao.
+
+Na carga atual, a otimizacao de indice e automatica somente quando `public.users`
+esta comprovadamente vazia. O script adquire `ACCESS EXCLUSIVE`, confirma novamente
+que nao houve insercao concorrente, remove `users_email_key`, insere o conjunto
+deduplicado e recria o mesmo indice unico antes do commit. Todo o DDL e o INSERT
+ficam na mesma transacao: qualquer falha restaura o indice e reverte os usuarios.
+Em banco populado, nada muda: o indice permanece ativo e `ON CONFLICT` e usado.
 
 Execucao manual dentro do PostgreSQL:
 
@@ -149,12 +156,17 @@ docker compose run --rm -e IMPORT_LIMIT=1000000 database-init
 docker compose run --rm -e IMPORT_LIMIT=0 database-init   # arquivo completo
 ```
 
+`IMPORT_CSV_FORMAT=legacy4` e o padrao deste projeto porque o dataset oficial tem
+`id,name,email,phone`. Para um TGZ `name,email`, use `standard2`. Use `auto` quando
+o formato nao for conhecido; esse fallback e mais lento porque precisa descobrir o
+cabecalho antes de escolher as colunas do COPY.
+
 ## Estatisticas e monitoramento
 
 O script ativa `ON_ERROR_STOP` e `timing`, e imprime carregadas, nomes/emails
 invalidos, duplicadas, existentes, inseridas, ignoradas, total final e duracao de
-COPY, normalizacao, deduplicacao, insercao e total. As contagens reutilizam as
-tabelas materializadas; nao ha `COUNT(*)` continuo durante a carga.
+COPY, normalizacao, deduplicacao, insercao e total. Nao ha `COUNT(*)` continuo
+durante a carga.
 
 Em outro terminal:
 
@@ -181,6 +193,16 @@ TGZ, um reprocessamento idempotente levou 1 min 51,5 s no host e 45,5 s na fase
 COPY/validacao. A segunda medicao utilizou cache de disco aquecido e banco ja
 populado; portanto demonstra o ganho da leitura, mas nao garante o tempo de uma
 carga fria em outra maquina.
+
+Com a reconstrucao transacional de `users_email_key` em banco vazio, um benchmark
+isolado posterior reduziu a insercao de 58,1 s para 15,1 s. A importacao SQL total
+caiu de 2 min 42,9 s para 2 min 1,1 s, e o tempo observado pelo host foi 2 min
+7,9 s. O banco temporario foi removido depois da medicao.
+
+Com formato conhecido e validacao estrutural concorrente ao COPY, o benchmark
+final processou 10 milhoes de linhas em 1 min 33,4 s de SQL e 1 min 41,1 s no host.
+Essa medicao inclui SHA-256, normalizacao, deduplicacao, 1.598.726 insercoes e a
+recriacao do indice unico, mas nao inclui download inicial de imagens Docker.
 
 Evite repetir `COUNT(*)` durante a carga. Para benchmark, salve o log de `psql` e
 compare as linhas `Time:` e o resumo final. O tempo de descompactacao esta incluido

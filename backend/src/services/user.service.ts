@@ -55,7 +55,7 @@ export class UserService {
     const where: Record<string, unknown> = {};
     if (query.name) where.name = { contains: query.name };
     if (query.email) where.email = { contains: query.email };
-    if (query.search) where.OR = [{ name: { contains: query.search } }, { email: { contains: query.search } }];
+    if (query.search) where.name = { contains: query.search, mode: 'insensitive' };
 
     const { users, total } = await this.userRepository.findAll({
       skip: (query.page - 1) * query.limit,

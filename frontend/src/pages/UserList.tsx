@@ -82,7 +82,7 @@ export function UserList() {
         <div><h1 className="text-3xl font-bold">Lista de Usuários</h1><p className="text-sm text-muted-foreground">Visualização, cadastro, edição e exclusão de usuários.</p></div>
         <Button onClick={() => setIsRegisterOpen(true)}><UserPlus className="mr-2 h-4 w-4" />Cadastrar Usuário</Button>
       </div>
-      <Card><CardContent className="p-4"><div className="relative"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={searchValue} onChange={(event) => { setSearchValue(event.target.value); setPage(1); }} placeholder="Pesquisar por nome ou e-mail..." className="h-10 w-full rounded-xl border bg-background pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-ring" /></div></CardContent></Card>
+      <Card><CardContent className="p-4"><div className="relative"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={searchValue} onChange={(event) => { setSearchValue(event.target.value); setPage(1); }} placeholder="Pesquisar pelo nome do usuário..." aria-label="Pesquisar usuários pelo nome" className="h-10 w-full rounded-xl border bg-background pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-ring" /></div></CardContent></Card>
       <Card><CardContent className="p-0">
         <Table><TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>E-mail</TableHead><TableHead>Data de Criação</TableHead><TableHead className="text-center">Ações</TableHead></TableRow></TableHeader>
           <TableBody>

@@ -167,7 +167,7 @@ describe('UserService Unit Tests', () => {
       });
     });
 
-    it('should apply filters dynamically when name, email, or search is provided', async () => {
+    it('should apply the general search only to user names', async () => {
       mockUserRepository.findAll.mockResolvedValue({
         users: [],
         total: 0,
@@ -178,8 +178,6 @@ describe('UserService Unit Tests', () => {
         limit: 5,
         sortBy: 'name' as const,
         sortOrder: 'asc' as const,
-        name: 'Alice',
-        email: 'alice@',
         search: 'keyword',
       };
 
@@ -190,12 +188,7 @@ describe('UserService Unit Tests', () => {
         take: 5,
         orderBy: { name: 'asc' },
         where: {
-          name: { contains: 'Alice' },
-          email: { contains: 'alice@' },
-          OR: [
-            { name: { contains: 'keyword' } },
-            { email: { contains: 'keyword' } },
-          ],
+          name: { contains: 'keyword', mode: 'insensitive' },
         },
       });
     });
