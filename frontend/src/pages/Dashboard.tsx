@@ -18,7 +18,7 @@ export function Dashboard() {
   return (
     <div className="space-y-7">
       <section>
-        <h1 className="text-[27px] font-semibold tracking-[-0.03em] text-[#181d27] dark:text-[#f6f8fc] sm:text-[30px] xl:text-[34px]">Bem-vindo de volta, {firstName(user?.name) ?? 'usuário'}! <span className="text-[26px] sm:text-[30px]">👋</span></h1>
+        <h1 className="text-[27px] font-semibold tracking-[-0.03em] text-[#181d27] dark:text-[#f6f8fc] sm:text-[30px] xl:text-[34px]">Bem-vindo de volta, {firstName(user?.name) ?? 'usuário'}!</h1>
         <p className="mt-3 text-[15px] text-[#5e677b] dark:text-[#a9b5c9]">Aqui está um resumo geral da sua aplicação.</p>
       </section>
 
